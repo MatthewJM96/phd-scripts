@@ -1,0 +1,71 @@
+[tool.poetry]
+name = "phdscripts"
+version = "0.0.0"
+description = "Scripts I am using in my PhD."
+authors = ["Matthew Marshall <matthew.marshall@stfc.ac.uk>"]
+license = "MIT license"
+homepage = "https://github.com/SamThePsychoticLeprechaun/phd-scripts"
+
+[tool.poetry.dependencies]
+python = "~3.6"
+sphinx = "^4.2.0"
+sphinx-rtd-theme = "^1.0.0"
+pandas = "^1.3.4"
+numpy = "^1.21.4"
+toml = "^0.10.2"
+
+[tool.poetry.dev-dependencies]
+black = "^22.3.0"
+flake8 = "^4.0.1"
+isort = "^5.10.0"
+mypy = "^0.910"
+mypy-extensions = "^0.4.3"
+pre-commit = "^2.15.0"
+hooks = {git = "https://github.com/stfc/pre-commit-hooks", tag = "v0.3.0"}
+pylint = "^2.11.1"
+regex = "^2021.11.2"
+tox = "^3.24.4"
+
+[build-system]
+requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.mypy]
+warn_return_any = true
+warn_unused_configs = true
+warn_redundant_casts = true
+
+[[tool.mypy.overrides]]
+module = [
+    "pandas",
+    "numpy",
+    "toml",
+    ]
+
+ignore_missing_imports = true
+
+[tool.pylint.master]
+persistent="yes"
+
+[tool.pylint.messages_control]
+max-line-length = 88
+disable = ["wrong-hanging-indentation", "bad-whitespace",]
+output-format = "colorized"
+
+[tool.pylint.basic]
+good-names = ["i", "j", "k", "e", "df", "n", "t",]
+
+[tool.isort]
+profile = "black"
+skip = ["build_seq.py", "conf.py"]
+float_to_top = true
+
+[tool.tox]
+legacy_tox_ini = """
+[tox]
+skipsdist = true
+envlist = py36
+"""
+
+[tool.poetry-dynamic-versioning]
+enable = true
