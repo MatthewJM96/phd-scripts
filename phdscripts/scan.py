@@ -5,12 +5,12 @@ Handles parameter scanning based on a parameter pack.
 from typing import Callable, Tuple
 
 from .parameter_pack import ParameterPack
-from .scheduler import get_scheduler_driver
+from .scheduler import get_default_register
 
 
 class ScanSettings:
     def __init__(self, scheduler: str = "slurm", parallel_jobs: int = 1):
-        self.scheduler = get_scheduler_driver(scheduler)
+        self.scheduler = get_default_register().get_scheduler(scheduler)
         self.parallel_jobs = parallel_jobs
 
 
@@ -31,6 +31,6 @@ class ParameterScanner:
         job_script, job_count = self.setup(self.param_pack)
 
         # Submit jobs (using array batching - index into list with job array ID).
-        self.scheduler["array_batch_jobs"](
-            job_script, job_count, self.setup.parallel_jobs
+        self.scan_settings.scheduler.array_batch_jobs(
+            job_script, job_count, self.scan_settings.parallel_jobs
         )
