@@ -10,7 +10,9 @@ class SchedulerRegister:
     def __init__(self):
         self.schedulers = {}
 
-    def register_scheduler(self, scheduler_name: str, scheduler: SchedulerDriver):
+    def register_scheduler(
+        self, scheduler_name: str, scheduler: SchedulerDriver
+    ) -> None:
         if scheduler_name in self.schedulers:
             raise ValueError(
                 f"A scheduler with the name {scheduler_name} is already registered."
@@ -18,10 +20,10 @@ class SchedulerRegister:
 
         self.schedulers[scheduler_name] = scheduler
 
-    def has_scheduler(self, scheduler_name: str):
+    def has_scheduler(self, scheduler_name: str) -> bool:
         return scheduler_name in self.schedulers
 
-    def get_scheduler(self, scheduler_name: str):
+    def get_scheduler(self, scheduler_name: str) -> SchedulerDriver:
         if scheduler_name not in self.schedulers:
             raise ValueError(
                 f"No scheduler is registered with the name {scheduler_name}."
