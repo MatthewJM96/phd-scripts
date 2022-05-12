@@ -1,12 +1,7 @@
-"""
-Entry for acquiring the appropriate driver.
-"""
+from abc import ABC, abstractclassmethod
 
 
-def get_scheduler_driver(scheduler: str):
-    if scheduler == "slurm":
-        from .slurm import array_batch_jobs
-    else:
-        raise ValueError(f"No scheduler, {scheduler}, recognised.")
-
-    return {"array_batch_jobs": array_batch_jobs}
+class SchedulerDriver(ABC):
+    @abstractclassmethod
+    def array_batch_jobs(job_script: str, job_count: int, jobs_parallel: int = 1):
+        pass
