@@ -140,6 +140,9 @@ mpirun -n 2                                                     \\
                     jorek_input,
                 )
             else:
+                # TODO(Matthew): this actually breaks for now as there is a structure
+                #                to JOREK inputs that we need to handle (i.e. closing
+                #                "/" line).
                 jorek_input += f"\n{param} = {value_str}"
 
         with open(filepath, "w") as f:
