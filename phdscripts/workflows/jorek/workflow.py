@@ -2,7 +2,15 @@
 Contains the general workflow for Jorek runs.
 """
 
-from .. import Workflow
+import re
+from distutils.dir_util import copy_tree
+from os.path import join as join_path
+
+from .. import JOB_ERR_FILENAME, JOB_OUT_FILENAME, Workflow, WorkflowSettings
+
+JOREK_INIT_INPUT = "input_jorek_init"
+JOREK_RUN_INPUT = "input_jorek_run"
+STARWALL_INPUT = "input_starwall"
 
 
 class JorekWorkflow(Workflow):
@@ -11,11 +19,135 @@ class JorekWorkflow(Workflow):
     directory building, and job script writing.
     """
 
+    def __init__(
+        self,
+        run_id: str,
+        settings: WorkflowSettings,
+        template_dir: str,
+        jorek_exec: str,
+        starwall_exec: str,
+    ):
+        super().__init__(run_id, settings)
+
+        self.__template_dir = template_dir
+        self.__jorek_exec = jorek_exec
+        self.__starwall_exec = starwall_exec
+
+    def __input_jorek_init(self, name: str) -> str:
+        return join_path(self.__working_dir(name), JOREK_INIT_INPUT)
+
+    def __input_starwall(self, name: str) -> str:
+        return join_path(self.__working_dir(name), STARWALL_INPUT)
+
+    def __input_jorek_run(self, name: str) -> str:
+        return join_path(self.__working_dir(name), JOREK_RUN_INPUT)
+
     def __canonical_param_set_name(self, param_set: dict) -> str:
-        pass
+        # TODO(Matthew): Do we prefer to use something like uuid? This might make
+        #                rather ridiculous directory names. Could provide a script
+        #                that lists (with filtering/sorting) the runs and will move
+        #                command line to the apporpriate directory by index choice.
 
-    def __build_job_script() -> str:
-        pass
+        canonical_param_set_name = ""
 
-    def __build_working_directory(name: str, param_set: dict) -> None:
-        pass
+        for name, value in param_set.items():
+            canonical_param_set_name += name + "_" + str(value) + "___"
+
+        return canonical_param_set_name
+
+    def __build_job_script(self) -> str:
+        # TODO(Matthew): Move this out of here, this is Marconi specific and we would
+        #                rather have this injected by the caller.
+        #                  As a case in point: this assumes free boundary with two
+        #                  steps.
+        return f"""
+#!/bin/bash
+
+#SBATCH --job-name={self.run_id}
+#SBATCH --partition=skl_fua_prod
+##SBATCH --qos=skl_qos_fualprod
+#SBATCH --time=02:00:00
+
+#SBATCH --nodes=2
+#SBATCH --ntasks-per-node=1
+#SBATCH --mem 177GB
+
+#SBATCH --output={JOB_OUT_FILENAME}
+#SBATCH --error={JOB_ERR_FILENAME}
+
+#SBATCH -A FUA36_UKAEA_ML
+
+##SBATCH --mail-type=FAIL
+##SBATCH --mail-user=<e-mail address>
+
+### Set environment
+source $HOME/.loaders/load_2017_env.sh
+source $HOME/.loaders/load_nov1_21_jorek.sh
+
+export OMP_NUM_THREADS=8
+export I_MPI_PIN_MODE=lib
+
+export KMP_AFFINITY=compact,verbose # These three lines were suggested by Tamas Feher
+export I_MPI_PIN_DOMAIN=auto        # and have been useful for decreasing computation
+export KMP_HW_SUBSET=1t             # time on KNL
+
+# Obtain working directory name from reigster.
+param_set=$(                                                                      \\
+    awk '{{if(NR==$SLURM_ARRAY_TASK_ID) print $0}}' {self.__param_set_register()} \\
+)
+param_set_parts=$(IFS=',' read -ra ADDR <<< "$param_set")
+param_set_name=${{param_set_parts[0]}}
+
+mpirun -n 2                                                      \\
+    {self.__jorek_exec} < ${{param_set_name}}/{JOREK_INIT_INPUT} \\
+        | tee log.jorek_init
+
+mpirun -n 1                                                     \\
+    {self.__starwall_exec} ${{param_set_name}}/{STARWALL_INPUT} \\
+        | tee log.starwall
+
+mpirun -n 2                                                     \\
+    {self.__jorek_exec} < ${{param_set_name}}/{JOREK_RUN_INPUT} \\
+        | tee log.jorek_run
+        """
+
+    def __build_working_directory(self, name: str, param_set: dict) -> None:
+        copy_tree(self.__template_dir, self.__working_dir(name), preserve_symlinks=True)
+
+        self.__update_jorek_input_files(name, param_set)
+        self.__update_starwall_input_file(name, param_set)
+
+    def __update_jorek_input_files(self, name: str, param_set: dict) -> None:
+        with open(self.__input_jorek_init(name), "a") as f:
+            f.write("\n")
+            for name, value in param_set.items():
+                if name == "wall_distance":
+                    continue
+                f.write(f"{name} = {str(value)}\n")
+
+        with open(self.__input_jorek_run(name), "a") as f:
+            f.write("\n")
+            for name, value in param_set.items():
+                if name == "wall_distance":
+                    continue
+                f.write(f"{name} = {str(value)}\n")
+
+    def __update_starwall_input_file(self, name: str, param_set: dict) -> None:
+        # rc_w       =    3.000425,     1.2004248
+        # zs_w       =    0.,     1.2004248
+        with open(self.__input_starwall(name), "r") as f:
+            starwall_input = f.read()
+
+        starwall_input = re.sub(
+            r"(rc_w *= *[0-9]+[.[0-9]*]?, *)[0-9]+[.[0-9]*]?",
+            r"\1 " + f"{param_set['wall_distance']}",
+            starwall_input,
+        )
+        starwall_input = re.sub(
+            r"(zs_w *= *[0-9]+[.[0-9]*]?, *)[0-9]+[.[0-9]*]?",
+            r"\1 " + f"{param_set['wall_distance']}",
+            starwall_input,
+        )
+
+        with open(self.__input_starwall(name), "w") as f:
+            f.write(starwall_input)

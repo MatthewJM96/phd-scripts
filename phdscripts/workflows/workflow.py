@@ -12,7 +12,9 @@ from typing import Dict
 
 from phdscripts.parameter_pack import ParameterPack
 
-JOB_SCRIPT_FILENAME = "job"
+JOB_SCRIPT_FILENAME = "job.run"
+JOB_OUT_FILENAME = "job.out"
+JOB_ERR_FILENAME = "job.err"
 PARAM_SET_REGISTER_FILENAME = "param_set_register"
 
 
@@ -76,14 +78,28 @@ class Workflow(ABC):
     def __root_dir(self) -> str:
         return join_path(self.settings.base_dir, self.run_id)
 
+    def __job_script(self) -> str:
+        return join_path(self.__root_dir(), JOB_SCRIPT_FILENAME)
+
+    def __job_out(self) -> str:
+        return join_path(self.__root_dir(), JOB_OUT_FILENAME)
+
+    def __job_err(self) -> str:
+        return join_path(self.__root_dir(), JOB_ERR_FILENAME)
+
+    def __param_set_register(self) -> str:
+        return join_path(self.__root_dir(), PARAM_SET_REGISTER_FILENAME)
+
+    def __working_dir(self, name: str) -> str:
+        return join_path(self.__root_dir(), name)
+
     def __build_root_working_directory(self) -> None:
         makedirs(self.__root_dir(), exist_ok=True)
 
     def __write_job_script(self) -> None:
         job_script = self.__build_job_script()
 
-        job_script_filepath = join_path(self.__root_dir(), JOB_SCRIPT_FILENAME)
-        with open(job_script_filepath, "w") as f:
+        with open(self.__job_script(), "w") as f:
             f.write(job_script)
 
     def __write_param_set_register(self, param_sets: Dict[str, str]) -> None:
@@ -91,10 +107,7 @@ class Workflow(ABC):
         for name, param_set in param_sets.items():
             param_set_register += name + ", " + param_set + "\n"
 
-        param_set_register_filepath = join_path(
-            self.__root_dir(), PARAM_SET_REGISTER_FILENAME
-        )
-        with open(param_set_register_filepath, "w") as f:
+        with open(self.__param_set_register(), "w") as f:
             f.write(param_set_register)
 
     @abstractmethod
@@ -102,9 +115,9 @@ class Workflow(ABC):
         pass
 
     @abstractmethod
-    def __build_job_script() -> str:
+    def __build_job_script(self) -> str:
         pass
 
     @abstractmethod
-    def __build_working_directory(name: str, param_set: dict) -> None:
+    def __build_working_directory(self, name: str, param_set: dict) -> None:
         pass
