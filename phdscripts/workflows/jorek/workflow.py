@@ -129,14 +129,18 @@ mpirun -n 2                                                     \\
             if param == "wall_distance":
                 continue
 
+            # Convert standard notation to Fortran's notation.
+            value_str = str(value)
+            value_str = re.sub(r"([0-9]+).d([0-9]+)", r"\1.e\2")
+
             if re.match(rf"{param} *= *-?[0-9]+[.d?[0-9]*]?", jorek_input) is not None:
                 re.sub(
                     rf"{param} *= *-?[0-9]+[.d?[0-9]*]?",
-                    f"{param} = {value}",
+                    f"{param} = {value_str}",
                     jorek_input,
                 )
             else:
-                jorek_input += f"\n{param} = {value}"
+                jorek_input += f"\n{param} = {value_str}"
 
     def _update_starwall_input_file(self, name: str, param_set: dict) -> None:
         with open(self._input_starwall(name), "r") as f:
