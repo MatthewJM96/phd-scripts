@@ -11,6 +11,7 @@ from re import fullmatch
 from typing import Dict
 
 from phdscripts.parameter_pack import ParameterPack
+from phdscripts.scheduler import SchedulerDriver
 
 JOB_SCRIPT_FILENAME = "job.run"
 JOB_OUT_FILENAME = "job.out"
@@ -19,8 +20,10 @@ PARAM_SET_REGISTER_FILENAME = "param_set_register"
 
 
 class WorkflowSettings:
-    def __init__(self, base_dir: str):
+    def __init__(self, base_dir: str, parallel_jobs: int, scheduler: SchedulerDriver):
         self.base_dir = base_dir
+        self.scheduler = scheduler
+        self.parallel_jobs = parallel_jobs
 
 
 class Workflow(ABC):
@@ -57,17 +60,21 @@ class Workflow(ABC):
 
         param_sets: Dict[str, str] = {}
 
+        self._jobs = 0
         for param_set in param_pack:
             name = self._canonical_param_set_name(param_set)
 
             param_sets[name] = str(param_set)
 
             self._build_working_directory(name, param_set)
+            self._jobs += 1
 
         self._write_param_set_register(param_sets)
 
     def run(self):
-        pass
+        self.settings.scheduler.array_batch_jobs(
+            self._job_script(), self._jobs, self.settings.parallel_jobs
+        )
 
     def _are_settings_good(self) -> bool:
         if isdir(self.settings.base_dir):
