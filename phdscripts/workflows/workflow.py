@@ -12,6 +12,9 @@ from typing import Dict
 
 from phdscripts.parameter_pack import ParameterPack
 
+JOB_SCRIPT_FILENAME = "job"
+PARAM_SET_REGISTER_FILENAME = "param_set_register"
+
 
 class WorkflowSettings:
     def __init__(self, base_dir: str):
@@ -79,12 +82,20 @@ class Workflow(ABC):
     def __write_job_script(self) -> None:
         job_script = self.__build_job_script()
 
-        job_script_filepath = join_path(self.__root_dir(), ".job")
+        job_script_filepath = join_path(self.__root_dir(), JOB_SCRIPT_FILENAME)
         with open(job_script_filepath, "w") as f:
             f.write(job_script)
 
-    def __write_param_set_register(name: str, param_set: dict) -> None:
-        pass
+    def __write_param_set_register(self, param_sets: Dict[str, str]) -> None:
+        param_set_register = ""
+        for name, param_set in param_sets.items():
+            param_set_register += name + ", " + param_set + "\n"
+
+        param_set_register_filepath = join_path(
+            self.__root_dir(), PARAM_SET_REGISTER_FILENAME
+        )
+        with open(param_set_register_filepath, "w") as f:
+            f.write(param_set_register)
 
     @abstractmethod
     def __canonical_param_set_name(self, param_set: dict) -> str:
