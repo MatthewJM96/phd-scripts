@@ -131,7 +131,7 @@ mpirun -n 2                                                     \\
 
             # Convert standard notation to Fortran's notation.
             value_str = str(value)
-            value_str = re.sub(r"([0-9]+).d([0-9]+)", r"\1.e\2")
+            value_str = re.sub(r"([0-9]+).d([0-9]+)", r"\1.e\2", value_str)
 
             if re.match(rf"{param} *= *-?[0-9]+[.d?[0-9]*]?", jorek_input) is not None:
                 re.sub(
