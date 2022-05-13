@@ -118,34 +118,38 @@ mpirun -n 2                                                     \\
         self._update_starwall_input_file(name, param_set)
 
     def _update_jorek_input_files(self, name: str, param_set: dict) -> None:
-        with open(self._input_jorek_init(name), "a") as f:
-            f.write("\n")
-            for param, value in param_set.items():
-                if param == "wall_distance":
-                    continue
-                f.write(f"{param} = {str(value)}\n")
+        self._update_jorek_input_file(self._input_jorek_init(name), param_set)
+        self._update_jorek_input_file(self._input_jorek_run(name), param_set)
 
-        with open(self._input_jorek_run(name), "a") as f:
-            f.write("\n")
-            for param, value in param_set.items():
-                if param == "wall_distance":
-                    continue
-                f.write(f"{param} = {str(value)}\n")
+    def _update_jorek_input_file(self, filepath: str, param_set: dict) -> None:
+        with open(filepath, "r") as f:
+            jorek_input = f.read()
+
+        for param, value in param_set.items():
+            if param == "wall_distance":
+                continue
+
+            if re.match(rf"{param} *= *-?[0-9]+[.d?[0-9]*]?", jorek_input) is not None:
+                re.sub(
+                    rf"{param} *= *-?[0-9]+[.d?[0-9]*]?",
+                    f"{param} = {value}",
+                    jorek_input,
+                )
+            else:
+                jorek_input += f"\n{param} = {value}"
 
     def _update_starwall_input_file(self, name: str, param_set: dict) -> None:
-        # rc_w       =    3.000425,     1.2004248
-        # zs_w       =    0.,     1.2004248
         with open(self._input_starwall(name), "r") as f:
             starwall_input = f.read()
 
         starwall_input = re.sub(
             r"(rc_w *= *[0-9]+[.[0-9]*]?, *)[0-9]+[.[0-9]*]?",
-            r"\1 " + f"{param_set['wall_distance']}",
+            rf"\1 {param_set['wall_distance']}",
             starwall_input,
         )
         starwall_input = re.sub(
             r"(zs_w *= *[0-9]+[.[0-9]*]?, *)[0-9]+[.[0-9]*]?",
-            r"\1 " + f"{param_set['wall_distance']}",
+            rf"\1 {param_set['wall_distance']}",
             starwall_input,
         )
 
