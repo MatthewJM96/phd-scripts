@@ -142,6 +142,9 @@ mpirun -n 2                                                     \\
             else:
                 jorek_input += f"\n{param} = {value_str}"
 
+        with open(filepath, "w") as f:
+            f.write(jorek_input)
+
     def _update_starwall_input_file(self, name: str, param_set: dict) -> None:
         with open(self._input_starwall(name), "r") as f:
             starwall_input = f.read()
