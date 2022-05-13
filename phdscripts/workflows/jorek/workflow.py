@@ -29,20 +29,20 @@ class JorekWorkflow(Workflow):
     ):
         super().__init__(run_id, settings)
 
-        self.__template_dir = template_dir
-        self.__jorek_exec = jorek_exec
-        self.__starwall_exec = starwall_exec
+        self._template_dir = template_dir
+        self._jorek_exec = jorek_exec
+        self._starwall_exec = starwall_exec
 
-    def __input_jorek_init(self, name: str) -> str:
-        return join_path(self.__working_dir(name), JOREK_INIT_INPUT)
+    def _input_jorek_init(self, name: str) -> str:
+        return join_path(self._working_dir(name), JOREK_INIT_INPUT)
 
-    def __input_starwall(self, name: str) -> str:
-        return join_path(self.__working_dir(name), STARWALL_INPUT)
+    def _input_starwall(self, name: str) -> str:
+        return join_path(self._working_dir(name), STARWALL_INPUT)
 
-    def __input_jorek_run(self, name: str) -> str:
-        return join_path(self.__working_dir(name), JOREK_RUN_INPUT)
+    def _input_jorek_run(self, name: str) -> str:
+        return join_path(self._working_dir(name), JOREK_RUN_INPUT)
 
-    def __canonical_param_set_name(self, param_set: dict) -> str:
+    def _canonical_param_set_name(self, param_set: dict) -> str:
         # TODO(Matthew): Do we prefer to use something like uuid? This might make
         #                rather ridiculous directory names. Could provide a script
         #                that lists (with filtering/sorting) the runs and will move
@@ -55,7 +55,7 @@ class JorekWorkflow(Workflow):
 
         return canonical_param_set_name
 
-    def __build_job_script(self) -> str:
+    def _build_job_script(self) -> str:
         # TODO(Matthew): Move this out of here, this is Marconi specific and we would
         #                rather have this injected by the caller.
         #                  As a case in point: this assumes free boundary with two
@@ -93,49 +93,49 @@ export KMP_HW_SUBSET=1t             # time on KNL
 
 # Obtain working directory name from reigster.
 param_set=$(                                                                      \\
-    awk '{{if(NR==$SLURM_ARRAY_TASK_ID) print $0}}' {self.__param_set_register()} \\
+    awk '{{if(NR==$SLURM_ARRAY_TASK_ID) print $0}}' {self._param_set_register()} \\
 )
 param_set_parts=$(IFS=',' read -ra ADDR <<< "$param_set")
 param_set_name=${{param_set_parts[0]}}
 
 mpirun -n 2                                                      \\
-    {self.__jorek_exec} < ${{param_set_name}}/{JOREK_INIT_INPUT} \\
+    {self._jorek_exec} < ${{param_set_name}}/{JOREK_INIT_INPUT} \\
         | tee log.jorek_init
 
 mpirun -n 1                                                     \\
-    {self.__starwall_exec} ${{param_set_name}}/{STARWALL_INPUT} \\
+    {self._starwall_exec} ${{param_set_name}}/{STARWALL_INPUT} \\
         | tee log.starwall
 
 mpirun -n 2                                                     \\
-    {self.__jorek_exec} < ${{param_set_name}}/{JOREK_RUN_INPUT} \\
+    {self._jorek_exec} < ${{param_set_name}}/{JOREK_RUN_INPUT} \\
         | tee log.jorek_run
         """
 
-    def __build_working_directory(self, name: str, param_set: dict) -> None:
-        copy_tree(self.__template_dir, self.__working_dir(name), preserve_symlinks=True)
+    def _build_working_directory(self, name: str, param_set: dict) -> None:
+        copy_tree(self._template_dir, self._working_dir(name), preserve_symlinks=True)
 
-        self.__update_jorek_input_files(name, param_set)
-        self.__update_starwall_input_file(name, param_set)
+        self._update_jorek_input_files(name, param_set)
+        self._update_starwall_input_file(name, param_set)
 
-    def __update_jorek_input_files(self, name: str, param_set: dict) -> None:
-        with open(self.__input_jorek_init(name), "a") as f:
+    def _update_jorek_input_files(self, name: str, param_set: dict) -> None:
+        with open(self._input_jorek_init(name), "a") as f:
             f.write("\n")
-            for name, value in param_set.items():
-                if name == "wall_distance":
+            for param, value in param_set.items():
+                if param == "wall_distance":
                     continue
-                f.write(f"{name} = {str(value)}\n")
+                f.write(f"{param} = {str(value)}\n")
 
-        with open(self.__input_jorek_run(name), "a") as f:
+        with open(self._input_jorek_run(name), "a") as f:
             f.write("\n")
-            for name, value in param_set.items():
-                if name == "wall_distance":
+            for param, value in param_set.items():
+                if param == "wall_distance":
                     continue
-                f.write(f"{name} = {str(value)}\n")
+                f.write(f"{param} = {str(value)}\n")
 
-    def __update_starwall_input_file(self, name: str, param_set: dict) -> None:
+    def _update_starwall_input_file(self, name: str, param_set: dict) -> None:
         # rc_w       =    3.000425,     1.2004248
         # zs_w       =    0.,     1.2004248
-        with open(self.__input_starwall(name), "r") as f:
+        with open(self._input_starwall(name), "r") as f:
             starwall_input = f.read()
 
         starwall_input = re.sub(
@@ -149,5 +149,5 @@ mpirun -n 2                                                     \\
             starwall_input,
         )
 
-        with open(self.__input_starwall(name), "w") as f:
+        with open(self._input_starwall(name), "w") as f:
             f.write(starwall_input)
