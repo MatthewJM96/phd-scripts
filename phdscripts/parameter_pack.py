@@ -2,6 +2,7 @@
 Logic for building a parameter pack, on which a parameter scan can be performed.
 """
 
+from math import floor
 from os.path import isfile
 from typing import Any, List, Optional
 
@@ -60,14 +61,18 @@ class ParameterPack:
         param_set = {}
 
         idx = self.__index
-        cumul_idx = 0
+        prod_idx = 1
 
         for param, realisations in self.__parameters.items():
             if not isinstance(realisations, list):
                 param_set[param] = realisations
                 continue
 
-            if cumul_idx == 0:
+            if len(realisations) == 1:
+                param_set[param] = realisations[0]
+                continue
+
+            if prod_idx == 1:
                 param_idx = idx % len(realisations)
             else:
                 # This maths produces indexing that gives us an index structure across
@@ -86,13 +91,11 @@ class ParameterPack:
                 #       1 0 2 1 0
                 # etc. where in this case the first three parameters had 2, 1
                 # and 3 realisations respectively.
-                param_idx = int((idx - (idx % cumul_idx)) / cumul_idx) % len(
-                    realisations
-                )
+                param_idx = floor(float(idx) / float(prod_idx)) % len(realisations)
 
             param_set[param] = realisations[param_idx]
 
-            cumul_idx += len(realisations)
+            prod_idx *= len(realisations)
 
         self.__index += 1
 
