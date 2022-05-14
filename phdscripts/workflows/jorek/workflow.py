@@ -60,8 +60,7 @@ class JorekWorkflow(Workflow):
         #                rather have this injected by the caller.
         #                  As a case in point: this assumes free boundary with two
         #                  steps, and being ran as an array job via SLURM.
-        return f"""
-#!/bin/bash
+        return f"""#!/bin/bash
 
 #SBATCH --job-name={self.run_id}
 #SBATCH --partition=skl_fua_prod
