@@ -97,16 +97,18 @@ param_set=$(                                                                    
 param_set_parts=$(IFS=',' read -ra ADDR <<< "$param_set")
 param_set_name=${{param_set_parts[0]}}
 
+cd {self._root_dir()}/${{param_set_name}}
+
 mpirun -n 2                                                      \\
-    {self._jorek_exec} < ${{param_set_name}}/{JOREK_INIT_INPUT} \\
+    {self._jorek_exec} < {JOREK_INIT_INPUT} \\
         | tee log.jorek_init
 
 mpirun -n 1                                                     \\
-    {self._starwall_exec} ${{param_set_name}}/{STARWALL_INPUT} \\
+    {self._starwall_exec} {STARWALL_INPUT} \\
         | tee log.starwall
 
 mpirun -n 2                                                     \\
-    {self._jorek_exec} < ${{param_set_name}}/{JOREK_RUN_INPUT} \\
+    {self._jorek_exec} < {JOREK_RUN_INPUT} \\
         | tee log.jorek_run
         """
 
