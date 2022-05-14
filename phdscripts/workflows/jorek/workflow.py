@@ -59,7 +59,7 @@ class JorekWorkflow(Workflow):
         # TODO(Matthew): Move this out of here, this is Marconi specific and we would
         #                rather have this injected by the caller.
         #                  As a case in point: this assumes free boundary with two
-        #                  steps.
+        #                  steps, and being ran as an array job via SLURM.
         return f"""
 #!/bin/bash
 
