@@ -71,8 +71,8 @@ class JorekWorkflow(Workflow):
 #SBATCH --ntasks-per-node=1
 #SBATCH --mem 177GB
 
-#SBATCH --output={self._root_dir()}/${{SLURM_ARRAY_TASK_ID}}.{JOB_OUT_FILENAME}
-#SBATCH --error={self._root_dir()}/${{SLURM_ARRAY_TASK_ID}}.{JOB_ERR_FILENAME}
+#SBATCH --output={self._root_dir()}/%x.%j.{JOB_OUT_FILENAME}
+#SBATCH --error={self._root_dir()}/%x.%j.{JOB_ERR_FILENAME}
 
 #SBATCH -A FUA36_UKAEA_ML
 
