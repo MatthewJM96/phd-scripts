@@ -91,11 +91,9 @@ export I_MPI_PIN_DOMAIN=auto        # and have been useful for decreasing comput
 export KMP_HW_SUBSET=1t             # time on KNL
 
 # Obtain working directory name from reigster.
-param_set=$(                                                                      \\
-    awk '{{if(NR==$SLURM_ARRAY_TASK_ID) print $0}}' {self._param_set_register()} \\
-)
-param_set_parts=$(IFS=',' read -ra ADDR <<< "$param_set")
-param_set_name=${{param_set_parts[0]}}
+param_set="$(sed -n ${{SLURM_ARRAY_TASK_ID}}p {self._param_set_register()})"
+IFS=',' read -ra param_set_parts <<< "$param_set"
+param_set_name="${{param_set_parts[0]}}"
 
 cd {self._root_dir()}/${{param_set_name}}
 
