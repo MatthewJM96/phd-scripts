@@ -83,7 +83,6 @@ class JorekWorkflow(Workflow):
 source $HOME/.loaders/load_2017_env.sh
 source $HOME/.loaders/load_nov1_21_jorek.sh
 
-export OMP_NUM_THREADS=8
 export I_MPI_PIN_MODE=lib
 
 export KMP_AFFINITY=compact,verbose # These three lines were suggested by Tamas Feher
@@ -98,14 +97,17 @@ param_set_name="${{param_set_parts[0]}}"
 
 cd {self._root_dir()}/${{param_set_name}}
 
+export OMP_NUM_THREADS=8
 mpirun -n 2                                                      \\
     {self._jorek_exec} < {JOREK_INIT_INPUT} \\
         | tee log.jorek_init
 
+export OMP_NUM_THREADS=1
 mpirun -n 1                                                     \\
     {self._starwall_exec} {STARWALL_INPUT} \\
         | tee log.starwall
 
+export OMP_NUM_THREADS=8
 mpirun -n 2                                                     \\
     {self._jorek_exec} < {JOREK_RUN_INPUT} \\
         | tee log.jorek_run
