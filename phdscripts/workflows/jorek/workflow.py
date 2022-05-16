@@ -85,10 +85,6 @@ source $HOME/.loaders/load_nov1_21_jorek.sh
 
 export I_MPI_PIN_MODE=lib
 
-export KMP_AFFINITY=compact,verbose # These three lines were suggested by Tamas Feher
-export I_MPI_PIN_DOMAIN=auto        # and have been useful for decreasing computation
-export KMP_HW_SUBSET=1t             # time on KNL
-
 # Obtain working directory name from reigster.
 line_num=$((${{SLURM_ARRAY_TASK_ID}} + 1))
 param_set="$(sed -n ${{line_num}}p {self._param_set_register()})"
@@ -106,6 +102,10 @@ export OMP_NUM_THREADS=1
 mpirun -n 1                                                     \\
     {self._starwall_exec} {STARWALL_INPUT} \\
         | tee log.starwall
+
+export KMP_AFFINITY=compact,verbose # These three lines were suggested by Tamas Feher
+export I_MPI_PIN_DOMAIN=auto        # and have been useful for decreasing computation
+export KMP_HW_SUBSET=1t             # time on KNL
 
 export OMP_NUM_THREADS=8
 mpirun -n 2                                                     \\
