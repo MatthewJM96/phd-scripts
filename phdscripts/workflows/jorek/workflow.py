@@ -9,7 +9,7 @@ from os.path import join as join_path
 from .. import Workflow, WorkflowSettings
 
 JOREK_INIT_JOB_SCRIPT = "jorek_init.job.run"
-JOREK_RUN_JOB_SCRIPT = "jorek_init.job.run"
+JOREK_RUN_JOB_SCRIPT = "jorek_run.job.run"
 STARWALL_JOB_SCRIPT = "starwall.job.run"
 
 JOREK_INIT_JOB_OUT = "jorek_init.job.out"
