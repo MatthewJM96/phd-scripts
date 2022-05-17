@@ -27,7 +27,7 @@ class SlurmDriver(SchedulerDriver):
         cmd.append(array_flag)
 
         if array_dependency is not None:
-            cmd.append(f"--dependency=aftercorr:${array_dependency}")
+            cmd.append(f"--dependency=aftercorr:{array_dependency}")
 
         cmd.append(f"{job_script}")
 
