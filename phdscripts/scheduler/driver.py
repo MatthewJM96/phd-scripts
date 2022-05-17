@@ -9,5 +9,9 @@ class SchedulerDriver(ABC):
         job_count: int,
         jobs_parallel: int = 1,
         array_dependency: Optional[str] = None,
-    ):
+    ) -> str:
+        """
+        Schedules an array of jobs and sends them to the scheduler to be ran in batches.
+        The job array ID is returned by this function.
+        """
         pass

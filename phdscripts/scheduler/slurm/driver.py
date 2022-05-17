@@ -14,8 +14,12 @@ class SlurmDriver(SchedulerDriver):
         job_count: int,
         jobs_parallel: int = 1,
         array_dependency: Optional[str] = None,
-    ):
-        cmd = f"sbatch --array=0-{job_count-1}"
+    ) -> str:
+        """
+        Schedules an array of jobs and sends them to the scheduler to be ran in batches.
+        The job array ID is returned by this function.
+        """
+        cmd = f"sbatch --parsable --array=0-{job_count-1}"
 
         if jobs_parallel > 0:
             cmd += f"%{jobs_parallel}"
@@ -25,5 +29,6 @@ class SlurmDriver(SchedulerDriver):
 
         cmd += f" {job_script}"
 
-        # TODO(Matthew): Do we want to capture any output?
-        popen(cmd)
+        pipe = popen(cmd)
+
+        return pipe.read()
