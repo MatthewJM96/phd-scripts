@@ -33,4 +33,4 @@ class SlurmDriver(SchedulerDriver):
 
         pipe = run(cmd, stdout=PIPE)
 
-        return str(pipe.stdout).replace("\n", "")
+        return pipe.stdout.decode(encoding="UTF8").replace("\n", "")
