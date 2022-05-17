@@ -31,4 +31,4 @@ class SlurmDriver(SchedulerDriver):
 
         pipe = popen(cmd)
 
-        return pipe.read()
+        return pipe.readline()
