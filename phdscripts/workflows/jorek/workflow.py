@@ -6,7 +6,19 @@ import re
 from distutils.dir_util import copy_tree
 from os.path import join as join_path
 
-from .. import JOB_ERR_FILENAME, JOB_OUT_FILENAME, Workflow, WorkflowSettings
+from .. import Workflow, WorkflowSettings
+
+JOREK_INIT_JOB_SCRIPT = "jorek_init.job.run"
+JOREK_RUN_JOB_SCRIPT = "jorek_init.job.run"
+STARWALL_JOB_SCRIPT = "starwall.job.run"
+
+JOREK_INIT_JOB_OUT = "jorek_init.job.out"
+JOREK_RUN_JOB_OUT = "jorek_init.job.out"
+STARWALL_JOB_OUT = "starwall.job.out"
+
+JOREK_INIT_JOB_ERR = "jorek_init.job.err"
+JOREK_RUN_JOB_ERR = "jorek_init.job.err"
+STARWALL_JOB_ERR = "starwall.job.err"
 
 JOREK_INIT_INPUT = "input_jorek_init"
 JOREK_RUN_INPUT = "input_jorek_run"
@@ -33,6 +45,26 @@ class JorekWorkflow(Workflow):
         self._jorek_exec = jorek_exec
         self._starwall_exec = starwall_exec
 
+    def run(self):
+        # JOREK Initialisation
+        jorek_init_id = self.settings.scheduler.array_batch_jobs(
+            self._job_scripts(), self._job_instances, self.settings.parallel_jobs
+        )
+        # STARWALL
+        starwall_id = self.settings.scheduler.array_batch_jobs(
+            self._job_scripts(),
+            self._job_instances,
+            self.settings.parallel_jobs,
+            array_dependency=jorek_init_id,
+        )
+        # JOREK Run
+        self.settings.scheduler.array_batch_jobs(
+            self._job_scripts(),
+            self._job_instances,
+            self.settings.parallel_jobs,
+            array_dependency=starwall_id,
+        )
+
     def _input_jorek_init(self, name: str) -> str:
         return join_path(self._working_dir(name), JOREK_INIT_INPUT)
 
@@ -55,24 +87,40 @@ class JorekWorkflow(Workflow):
 
         return canonical_param_set_name
 
-    def _build_job_script(self) -> str:
+    def _jorek_init_job_script(self) -> str:
+        return join_path(self._root_dir(), JOREK_INIT_JOB_SCRIPT)
+
+    def _jorek_run_job_script(self) -> str:
+        return join_path(self._root_dir(), JOREK_RUN_JOB_SCRIPT)
+
+    def _starwall_job_script(self) -> str:
+        return join_path(self._root_dir(), STARWALL_JOB_SCRIPT)
+
+    def _write_job_scripts(self) -> str:
         # TODO(Matthew): Move this out of here, this is Marconi specific and we would
         #                rather have this injected by the caller.
         #                  As a case in point: this assumes free boundary with two
         #                  steps, and being ran as an array job via SLURM.
-        return f"""#!/bin/bash
 
-#SBATCH --job-name={self.run_id}
+        ########################
+        # JOREK Initialisation #
+        ########################
+
+        with open(self._jorek_init_job_script(), "w") as f:
+            f.write(
+                f"""#!/bin/bash
+
+#SBATCH --job-name={self.run_id}_jorek_init
 #SBATCH --partition=skl_fua_prod
 ##SBATCH --qos=skl_qos_fualprod
-#SBATCH --time=02:00:00
+#SBATCH --time=00:10:00
 
 #SBATCH --nodes=2
 #SBATCH --ntasks-per-node=1
 #SBATCH --mem 177GB
 
-#SBATCH --output={self._root_dir()}/%x.%a.{JOB_OUT_FILENAME}
-#SBATCH --error={self._root_dir()}/%x.%a.{JOB_ERR_FILENAME}
+#SBATCH --output={self._root_dir()}/%x.%a.{JOREK_INIT_JOB_OUT}
+#SBATCH --error={self._root_dir()}/%x.%a.{JOREK_INIT_JOB_ERR}
 
 #SBATCH -A FUA36_UKAEA_ML
 
@@ -83,6 +131,7 @@ class JorekWorkflow(Workflow):
 source $HOME/.loaders/load_2017_env.sh
 source $HOME/.loaders/load_nov1_21_jorek.sh
 
+export OMP_NUM_THREADS=8
 export I_MPI_PIN_MODE=lib
 
 # Obtain working directory name from reigster.
@@ -93,25 +142,107 @@ param_set_name="${{param_set_parts[0]}}"
 
 cd {self._root_dir()}/${{param_set_name}}
 
-export OMP_NUM_THREADS=8
-mpirun -n 2                                                      \\
+mpirun -n 2                                 \\
     {self._jorek_exec} < {JOREK_INIT_INPUT} \\
         | tee log.jorek_init
+            """
+            )
+
+        ############
+        # STARWALL #
+        ############
+
+        with open(self._starwall_job_script(), "w") as f:
+            f.write(
+                f"""#!/bin/bash
+
+#SBATCH --job-name={self.run_id}_starwall
+#SBATCH --partition=skl_fua_prod
+##SBATCH --qos=skl_qos_fualprod
+#SBATCH --time=00:30:00
+
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=48
+#SBATCH --cpus-per-task=1
+
+#SBATCH --output={self._root_dir()}/%x.%a.{STARWALL_JOB_OUT}
+#SBATCH --error={self._root_dir()}/%x.%a.{STARWALL_JOB_ERR}
+
+#SBATCH -A FUA36_UKAEA_ML
+
+##SBATCH --mail-type=FAIL
+##SBATCH --mail-user=<e-mail address>
+
+### Set environment
+source $HOME/.loaders/load_2017_env.sh
+source $HOME/.loaders/load_nov1_21_jorek.sh
 
 export OMP_NUM_THREADS=1
-mpirun -n 1                                                     \\
+export I_MPI_PIN_MODE=lib
+
+# Obtain working directory name from reigster.
+line_num=$((${{SLURM_ARRAY_TASK_ID}} + 1))
+param_set="$(sed -n ${{line_num}}p {self._param_set_register()})"
+IFS=',' read -ra param_set_parts <<< "$param_set"
+param_set_name="${{param_set_parts[0]}}"
+
+cd {self._root_dir()}/${{param_set_name}}
+
+mpirun -n 1                                \\
     {self._starwall_exec} {STARWALL_INPUT} \\
         | tee log.starwall
+            """
+            )
+
+        #############
+        # JOREK Run #
+        #############
+
+        with open(self._jorek_run_job_script(), "w") as f:
+            f.write(
+                f"""#!/bin/bash
+
+#SBATCH --job-name={self.run_id}_jorek_run
+#SBATCH --partition=skl_fua_prod
+##SBATCH --qos=skl_qos_fualprod
+#SBATCH --time=02:00:00
+
+#SBATCH --nodes=2
+#SBATCH --ntasks-per-node=1
+#SBATCH --mem 177GB
+
+#SBATCH --output={self._root_dir()}/%x.%a.{JOREK_RUN_JOB_OUT}
+#SBATCH --error={self._root_dir()}/%x.%a.{JOREK_RUN_JOB_ERR}
+
+#SBATCH -A FUA36_UKAEA_ML
+
+##SBATCH --mail-type=FAIL
+##SBATCH --mail-user=<e-mail address>
+
+### Set environment
+source $HOME/.loaders/load_2017_env.sh
+source $HOME/.loaders/load_nov1_21_jorek.sh
+
+export OMP_NUM_THREADS=8
+export I_MPI_PIN_MODE=lib
 
 export KMP_AFFINITY=compact,verbose # These three lines were suggested by Tamas Feher
 export I_MPI_PIN_DOMAIN=auto        # and have been useful for decreasing computation
 export KMP_HW_SUBSET=1t             # time on KNL
 
-export OMP_NUM_THREADS=8
-mpirun -n 2                                                     \\
+# Obtain working directory name from reigster.
+line_num=$((${{SLURM_ARRAY_TASK_ID}} + 1))
+param_set="$(sed -n ${{line_num}}p {self._param_set_register()})"
+IFS=',' read -ra param_set_parts <<< "$param_set"
+param_set_name="${{param_set_parts[0]}}"
+
+cd {self._root_dir()}/${{param_set_name}}
+
+mpirun -n 2                                \\
     {self._jorek_exec} < {JOREK_RUN_INPUT} \\
         | tee log.jorek_run
-        """
+            """
+            )
 
     def _build_working_directory(self, name: str, param_set: dict) -> None:
         copy_tree(self._template_dir, self._working_dir(name), preserve_symlinks=True)
