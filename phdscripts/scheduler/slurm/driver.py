@@ -2,7 +2,7 @@
 Functions for interacting with Slurm scheduler.
 """
 
-from subprocess import run
+from subprocess import PIPE, run
 from typing import Optional
 
 from .. import SchedulerDriver
@@ -31,6 +31,6 @@ class SlurmDriver(SchedulerDriver):
 
         cmd.append(f"{job_script}")
 
-        pipe = run(cmd, capture_output=True)
+        pipe = run(cmd, stdout=PIPE)
 
         return pipe.stdout
