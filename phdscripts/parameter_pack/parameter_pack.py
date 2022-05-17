@@ -22,7 +22,9 @@ class ParameterPack:
         return repr(self.__parameters)
 
     def __len__(self):
-        return len(self.__parameters)
+        self.__count_parameter_permutations()
+
+        return self.__count
 
     def __delitem__(self, key):
         del self.__parameters[key]
