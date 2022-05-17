@@ -190,8 +190,7 @@ param_set_name="${{param_set_parts[0]}}"
 
 cd {self._root_dir()}/${{param_set_name}}
 
-mpirun -n 1                                \\
-    {self._starwall_exec} {STARWALL_INPUT} \\
+mpirun {self._starwall_exec} {STARWALL_INPUT} \\
         | tee log.starwall
             """
             )
