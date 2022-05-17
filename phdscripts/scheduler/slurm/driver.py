@@ -2,7 +2,7 @@
 Functions for interacting with Slurm scheduler.
 """
 
-from os import popen
+from subprocess import run
 from typing import Optional
 
 from .. import SchedulerDriver
@@ -19,16 +19,18 @@ class SlurmDriver(SchedulerDriver):
         Schedules an array of jobs and sends them to the scheduler to be ran in batches.
         The job array ID is returned by this function.
         """
-        cmd = f"sbatch --parsable --array=0-{job_count-1}"
+        cmd = ["sbatch", "--parsable"]
 
+        array_flag = f"--array=0-{job_count-1}"
         if jobs_parallel > 0:
-            cmd += f"%{jobs_parallel}"
+            array_flag += f"%{jobs_parallel}"
+        cmd.append(array_flag)
 
         if array_dependency is not None:
-            cmd += f" --dependency=aftercorr:${array_dependency}"
+            cmd.append(f"--dependency=aftercorr:${array_dependency}")
 
-        cmd += f" {job_script}"
+        cmd.append(f"{job_script}")
 
-        pipe = popen(cmd)
+        pipe = run(cmd, capture_output=True)
 
-        return pipe.readline()
+        return pipe.stdout
