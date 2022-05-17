@@ -53,7 +53,7 @@ class Workflow(ABC):
     def setup(self, param_pack: ParameterPack):
         self._build_root_working_directory()
 
-        self._write_job_script()
+        self._write_job_scripts()
 
         param_sets: Dict[str, str] = {}
 
