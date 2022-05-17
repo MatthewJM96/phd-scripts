@@ -48,18 +48,20 @@ class JorekWorkflow(Workflow):
     def run(self):
         # JOREK Initialisation
         jorek_init_id = self.settings.scheduler.array_batch_jobs(
-            self._job_scripts(), self._job_instances, self.settings.parallel_jobs
+            self._jorek_init_job_script(),
+            self._job_instances,
+            self.settings.parallel_jobs,
         )
         # STARWALL
         starwall_id = self.settings.scheduler.array_batch_jobs(
-            self._job_scripts(),
+            self._starwall_job_script(),
             self._job_instances,
             self.settings.parallel_jobs,
             array_dependency=jorek_init_id,
         )
         # JOREK Run
         self.settings.scheduler.array_batch_jobs(
-            self._job_scripts(),
+            self._jorek_run_job_script(),
             self._job_instances,
             self.settings.parallel_jobs,
             array_dependency=starwall_id,
