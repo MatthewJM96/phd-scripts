@@ -25,7 +25,7 @@ JOREK_RUN_INPUT = "input_jorek_run"
 STARWALL_INPUT = "input_starwall"
 
 
-class JorekWorkflow(Workflow):
+class JorekFreeBoundaryWorkflow(Workflow):
     """
     General workflow for Jorek runs. Must be injected with specific logic for working
     directory building, and job script writing.
