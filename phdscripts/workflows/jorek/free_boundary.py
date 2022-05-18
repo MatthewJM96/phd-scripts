@@ -13,11 +13,11 @@ JOREK_RUN_JOB_SCRIPT = "jorek_run.job.run"
 STARWALL_JOB_SCRIPT = "starwall.job.run"
 
 JOREK_INIT_JOB_OUT = "jorek_init.job.out"
-JOREK_RUN_JOB_OUT = "jorek_init.job.out"
+JOREK_RUN_JOB_OUT = "jorek_run.job.out"
 STARWALL_JOB_OUT = "starwall.job.out"
 
 JOREK_INIT_JOB_ERR = "jorek_init.job.err"
-JOREK_RUN_JOB_ERR = "jorek_init.job.err"
+JOREK_RUN_JOB_ERR = "jorek_run.job.err"
 STARWALL_JOB_ERR = "starwall.job.err"
 
 JOREK_INIT_INPUT = "input_jorek_init"
