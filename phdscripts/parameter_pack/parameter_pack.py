@@ -3,50 +3,59 @@ Parameter pack handling iterating over every permutation of the packed parameter
 """
 
 from math import floor
-from typing import Any
 
 
 class ParameterPack:
+    """
+    Parameter pack handling iterating over every permutation of the packed parameters.
+    Note that this is NOT thread-safe (not that anything in Python is...)!
+    """
+
     def __init__(self):
-        self.__parameters = {}
+        self.__parameters = {"include": {}, "exclude": {}}
+        self.__actual_parameters = {}
         self.__index = 0
         self.__count = 0
-
-    def __getitem__(self, key: str) -> Any:
-        return self.__parameters[key]
-
-    def __setitem__(self, key: str, val: Any):
-        self.__parameters[key] = val
+        self.__dirty = False
 
     def __repr__(self):
         return repr(self.__parameters)
 
     def __len__(self):
-        self.__count_parameter_permutations()
+        self.__calculate_acutal_parameters()
 
         return self.__count
-
-    def __delitem__(self, key):
-        del self.__parameters[key]
 
     def __cmp__(self, dict_):
         return self.__cmp__(self.__parameters, dict_)
 
-    def __contains__(self, item):
-        return item in self.__parameters
+    def __calculate_acutal_parameters(self) -> None:
+        if not self.__dirty:
+            return
 
-    def __count_parameter_permutations(self):
-        if len(self.__parameters) == 0:
+        self.__actual_parameters = {}
+        for param, vals in self.__parameters["include"]:
+            if param in self.__parameters["exclude"]:
+                exclude_vals = self.__parameters["exclude"][param]
+                self.__actual_parameters[param] = [
+                    x for x in vals if x not in exclude_vals
+                ]
+            else:
+                self.__actual_parameters[param] = vals
+
+        if len(self.__actual_parameters) == 0:
             self.__count = 0
         else:
             self.__count = 1
-            for realisations in self.__parameters.values():
-                if isinstance(realisations, list):
-                    self.__count *= len(realisations)
+            for vals in self.__acutal_parameters.values():
+                if isinstance(vals, list):
+                    self.__count *= len(vals)
+
+        self.__dirty = False
 
     def __iter__(self):
         self.__index = 0
-        self.__count_parameter_permutations()
+        self.__calculate_acutal_parameters()
 
         return self
 
@@ -59,7 +68,7 @@ class ParameterPack:
         idx = self.__index
         prod_idx = 1
 
-        for param, realisations in self.__parameters.items():
+        for param, realisations in self.__acutal_parameters.items():
             if not isinstance(realisations, list):
                 param_set[param] = realisations
                 continue
