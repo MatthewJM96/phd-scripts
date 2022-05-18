@@ -27,8 +27,7 @@ STARWALL_INPUT = "input_starwall"
 
 class JorekFreeBoundaryWorkflow(Workflow):
     """
-    General workflow for Jorek runs. Must be injected with specific logic for working
-    directory building, and job script writing.
+    Workflow for free-boundary Jorek runs.
     """
 
     def __init__(
