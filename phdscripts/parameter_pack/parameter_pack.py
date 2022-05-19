@@ -25,9 +25,10 @@ class ParameterPack:
         if not isinstance(values, list):
             values = [values]
 
-        self.__parameters["include"][param] = (
-            self.__parameters["include"].get(param, []).extend(values)
-        )
+        if param not in self.__parameters["include"]:
+            self.__parameters["include"][param] = []
+
+        self.__parameters["include"][param].extend(values)
 
     def exclude(
         self, param: str, values: Union[int, str, float, List[Union[int, str, float]]]
@@ -35,9 +36,10 @@ class ParameterPack:
         if not isinstance(values, list):
             values = [values]
 
-        self.__parameters["exclude"][param] = (
-            self.__parameters["exclude"].get(param, []).extend(values)
-        )
+        if param not in self.__parameters["exclude"]:
+            self.__parameters["exclude"][param] = []
+
+        self.__parameters["exclude"][param].extend(values)
 
     def __repr__(self):
         return repr(self.__parameters)
