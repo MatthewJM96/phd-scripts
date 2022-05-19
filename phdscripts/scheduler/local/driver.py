@@ -11,9 +11,11 @@ from .. import SchedulerDriver
 
 
 class LocalDriver(SchedulerDriver):
+    @staticmethod
     def _execute_local_script(index: int, job_script: str):
         run([f"JOB_INDEX={index}", f"{job_script}"])
 
+    @staticmethod
     def array_batch_jobs(
         job_script: str,
         job_count: int,
