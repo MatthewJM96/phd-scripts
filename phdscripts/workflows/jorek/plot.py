@@ -50,7 +50,7 @@ class PlotJorekWorkflow(Workflow):
         #                choice of scheduler is obviated.
         with open(self._job_script(), "w") as f:
             f.write(
-                """#!/bin/bash
+                f"""#!/bin/bash
 
 # Setup environment.
 source $HOME/.loaders/load_2017_env.sh
