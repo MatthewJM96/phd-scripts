@@ -57,7 +57,7 @@ class JorekFixedBoundaryWorkflow(Workflow):
     def _job_script(self) -> str:
         return join_path(self._root_dir(), JOREK_JOB_SCRIPT)
 
-    def _write_job_scripts(self) -> str:
+    def _write_job_scripts(self) -> None:
         # TODO(Matthew): Move this out of here, this is Marconi specific and we would
         #                rather have this injected by the caller.
         #                  As a case in point: this assumes free boundary with two
