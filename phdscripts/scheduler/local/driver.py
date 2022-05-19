@@ -11,7 +11,7 @@ from .. import SchedulerDriver
 
 
 class LocalDriver(SchedulerDriver):
-    def _execute_local_script(job_script: str, index: int):
+    def _execute_local_script(index: int, job_script: str):
         run([f"JOB_INDEX={index}", f"{job_script}"])
 
     def array_batch_jobs(
