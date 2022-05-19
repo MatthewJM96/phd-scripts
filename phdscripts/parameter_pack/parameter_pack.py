@@ -3,6 +3,7 @@ Parameter pack handling iterating over every permutation of the packed parameter
 """
 
 from math import floor
+from typing import List, Union
 
 
 class ParameterPack:
@@ -17,6 +18,16 @@ class ParameterPack:
         self.__index = 0
         self.__count = 0
         self.__dirty = False
+
+    def include(self, param: str, values: List[Union[int, str, float]]):
+        self.__parameters["include"][param] = (
+            self.__parameters["include"].get(param, []).append(*values)
+        )
+
+    def exclude(self, param: str, values: List[Union[int, str, float]]):
+        self.__parameters["exclude"][param] = (
+            self.__parameters["exclude"].get(param, []).append(*values)
+        )
 
     def __repr__(self):
         return repr(self.__parameters)

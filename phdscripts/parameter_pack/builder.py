@@ -92,10 +92,11 @@ def build_parameter_pack(
         raw_params.update(cli_args)
 
     params = ParameterPack()
+    # TODO(Matthew): Support for excluding!
     for key, val in raw_params.items():
         if isinstance(val, dict):
-            params[key] = __parse_dict_param(val)
+            params.include(key, __parse_dict_param(val))
         else:
-            params[key] = val
+            params.include(key, val)
 
     return params
