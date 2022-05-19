@@ -4,6 +4,7 @@ Functions that run locally as if using a scheduler.
 
 from functools import partial
 from multiprocessing import Pool
+from os import environ
 from subprocess import run
 from typing import Optional
 
@@ -13,7 +14,9 @@ from .. import SchedulerDriver
 class LocalDriver(SchedulerDriver):
     @staticmethod
     def _execute_local_script(index: int, job_script: str):
-        run([f"JOB_INDEX={index}", f"{job_script}"])
+        env = environ.copy()
+        env["JOB_INDEX"] = index
+        run([f"{job_script}"], env=env)
 
     @staticmethod
     def array_batch_jobs(
