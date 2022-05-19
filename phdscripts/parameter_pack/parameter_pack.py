@@ -19,12 +19,22 @@ class ParameterPack:
         self.__count = 0
         self.__dirty = False
 
-    def include(self, param: str, values: List[Union[int, str, float]]):
+    def include(
+        self, param: str, values: Union[int, str, float, List[Union[int, str, float]]]
+    ):
+        if not isinstance(values, list):
+            values = [values]
+
         self.__parameters["include"][param] = (
             self.__parameters["include"].get(param, []).append(*values)
         )
 
-    def exclude(self, param: str, values: List[Union[int, str, float]]):
+    def exclude(
+        self, param: str, values: Union[int, str, float, List[Union[int, str, float]]]
+    ):
+        if not isinstance(values, list):
+            values = [values]
+
         self.__parameters["exclude"][param] = (
             self.__parameters["exclude"].get(param, []).append(*values)
         )
