@@ -59,7 +59,7 @@ class ParameterPack:
             return
 
         self.__actual_parameters = {}
-        for param, vals in self.__parameters["include"]:
+        for param, vals in self.__parameters["include"].items():
             if param in self.__parameters["exclude"]:
                 exclude_vals = self.__parameters["exclude"][param]
                 self.__actual_parameters[param] = [
