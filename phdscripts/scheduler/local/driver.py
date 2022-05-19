@@ -30,6 +30,6 @@ class LocalDriver(SchedulerDriver):
         #                of such coded array (this means coding this array ofc!).
         with Pool(jobs_parallel) as thread_pool:
             thread_pool.map(
-                partial(LocalDriver._execute_local_script(job_script=job_script)),
+                partial(LocalDriver._execute_local_script, job_script=job_script),
                 list(range(0, job_count)),
             )
