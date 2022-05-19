@@ -29,6 +29,7 @@ class ParameterPack:
             self.__parameters["include"][param] = []
 
         self.__parameters["include"][param].extend(values)
+        self.__dirty = True
 
     def exclude(
         self, param: str, values: Union[int, str, float, List[Union[int, str, float]]]
@@ -40,6 +41,7 @@ class ParameterPack:
             self.__parameters["exclude"][param] = []
 
         self.__parameters["exclude"][param].extend(values)
+        self.__dirty = True
 
     def __repr__(self):
         return repr(self.__parameters)
