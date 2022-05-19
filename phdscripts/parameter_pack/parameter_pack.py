@@ -47,14 +47,14 @@ class ParameterPack:
         return repr(self.__parameters)
 
     def __len__(self):
-        self.__calculate_acutal_parameters()
+        self.__calculate_actual_parameters()
 
         return self.__count
 
     def __cmp__(self, dict_):
         return self.__cmp__(self.__parameters, dict_)
 
-    def __calculate_acutal_parameters(self) -> None:
+    def __calculate_actual_parameters(self) -> None:
         if not self.__dirty:
             return
 
@@ -72,7 +72,7 @@ class ParameterPack:
             self.__count = 0
         else:
             self.__count = 1
-            for vals in self.__acutal_parameters.values():
+            for vals in self.__actual_parameters.values():
                 if isinstance(vals, list):
                     self.__count *= len(vals)
 
@@ -80,7 +80,7 @@ class ParameterPack:
 
     def __iter__(self):
         self.__index = 0
-        self.__calculate_acutal_parameters()
+        self.__calculate_actual_parameters()
 
         return self
 
@@ -93,7 +93,7 @@ class ParameterPack:
         idx = self.__index
         prod_idx = 1
 
-        for param, realisations in self.__acutal_parameters.items():
+        for param, realisations in self.__actual_parameters.items():
             if not isinstance(realisations, list):
                 param_set[param] = realisations
                 continue
