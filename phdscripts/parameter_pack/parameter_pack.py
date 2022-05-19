@@ -26,7 +26,7 @@ class ParameterPack:
             values = [values]
 
         self.__parameters["include"][param] = (
-            self.__parameters["include"].get(param, []).extend(*values)
+            self.__parameters["include"].get(param, []).extend(values)
         )
 
     def exclude(
@@ -36,7 +36,7 @@ class ParameterPack:
             values = [values]
 
         self.__parameters["exclude"][param] = (
-            self.__parameters["exclude"].get(param, []).extend(*values)
+            self.__parameters["exclude"].get(param, []).extend(values)
         )
 
     def __repr__(self):
