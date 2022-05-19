@@ -15,8 +15,8 @@ class LocalDriver(SchedulerDriver):
     @staticmethod
     def _execute_local_script(index: int, job_script: str):
         env = environ.copy()
-        env["JOB_INDEX"] = index
-        run([f"{job_script}"], env=env)
+        env["JOB_INDEX"] = f"{index}"
+        run(["/bin/bash", f"{job_script}"], env=env)
 
     @staticmethod
     def array_batch_jobs(
