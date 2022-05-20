@@ -46,12 +46,9 @@ class PlotJorekWorkflow(Workflow):
         return canonical_param_set_name
 
     def _write_job_scripts(self) -> None:
-        # TODO(Matthew): As elsewhere, we need to generalise job script writing so that
-        #                choice of scheduler is obviated.
-        with open(self._job_script(), "w") as f:
-            f.write(
-                f"""#!/bin/bash
-
+        self.settings.scheduler.write_array_job_script(
+            self._job_script(),
+            f"""
 # Setup environment.
 source $HOME/.loaders/load_2017_env.sh
 source $HOME/.loaders/load_nov1_21_jorek.sh
@@ -73,8 +70,16 @@ ln -s ~/tools/jorek.develop/util/ .
 # TODO(Matthew): Allow what gets plotted to be programmatically chosen?
 ./util/plot_live_data.sh -q energies -ps
 ./util/plot_live_data.sh -q growth_rates -ps
-"""
-            )
+            """,
+            job_name=f"{self.run_id}_plot_jorek",
+            partition="skl_fua_prod",
+            time="00:10:00",
+            nodes=1,
+            ntasks_per_node=48,
+            output=f"{self._root_dir()}/%x.%a.{PLOT_JOB_OUT}",
+            error=f"{self._root_dir()}/%x.%a.{PLOT_JOB_ERR}",
+            A="FUA36_UKAEA_ML",
+        )
 
     def _build_working_directory(self, name: str, _: dict) -> None:
         if not isdir(self._working_dir(name)):

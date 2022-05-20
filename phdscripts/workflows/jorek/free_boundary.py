@@ -107,27 +107,9 @@ class JorekFreeBoundaryWorkflow(Workflow):
         # JOREK Initialisation #
         ########################
 
-        with open(self._jorek_init_job_script(), "w") as f:
-            f.write(
-                f"""#!/bin/bash
-
-#SBATCH --job-name={self.run_id}_jorek_init
-#SBATCH --partition=skl_fua_prod
-##SBATCH --qos=skl_qos_fualprod
-#SBATCH --time=00:10:00
-
-#SBATCH --nodes=2
-#SBATCH --ntasks-per-node=1
-#SBATCH --mem 177GB
-
-#SBATCH --output={self._root_dir()}/%x.%a.{JOREK_INIT_JOB_OUT}
-#SBATCH --error={self._root_dir()}/%x.%a.{JOREK_INIT_JOB_ERR}
-
-#SBATCH -A FUA36_UKAEA_ML
-
-##SBATCH --mail-type=FAIL
-##SBATCH --mail-user=<e-mail address>
-
+        self.settings.scheduler.write_array_job_script(
+            self._jorek_init_job_script(),
+            f"""
 ### Set environment
 source $HOME/.loaders/load_2017_env.sh
 source $HOME/.loaders/load_nov1_21_jorek.sh
@@ -136,7 +118,7 @@ export OMP_NUM_THREADS=8
 export I_MPI_PIN_MODE=lib
 
 # Obtain working directory name from reigster.
-line_num=$((${{SLURM_ARRAY_TASK_ID}} + 1))
+line_num=$((${{JOB_INDEX}} + 1))
 param_set="$(sed -n ${{line_num}}p {self._param_set_register()})"
 IFS=',' read -ra param_set_parts <<< "$param_set"
 param_set_name="${{param_set_parts[0]}}"
@@ -146,34 +128,25 @@ cd {self._root_dir()}/${{param_set_name}}
 mpirun -n 2                                 \\
     {self._jorek_exec} < {JOREK_INIT_INPUT} \\
         | tee log.jorek_init
-            """
-            )
+            """,
+            job_name=f"{self.run_id}_jorek_init",
+            partition="skl_fua_prod",
+            time="00:10:00",
+            nodes=2,
+            ntasks_per_node=1,
+            mem="177GB",
+            output=f"{self._root_dir()}/%x.%a.{JOREK_INIT_JOB_OUT}",
+            error=f"{self._root_dir()}/%x.%a.{JOREK_INIT_JOB_ERR}",
+            A="FUA36_UKAEA_ML",
+        )
 
         ############
         # STARWALL #
         ############
 
-        with open(self._starwall_job_script(), "w") as f:
-            f.write(
-                f"""#!/bin/bash
-
-#SBATCH --job-name={self.run_id}_starwall
-#SBATCH --partition=skl_fua_prod
-##SBATCH --qos=skl_qos_fualprod
-#SBATCH --time=00:30:00
-
-#SBATCH --nodes=1
-#SBATCH --ntasks-per-node=48
-#SBATCH --cpus-per-task=1
-
-#SBATCH --output={self._root_dir()}/%x.%a.{STARWALL_JOB_OUT}
-#SBATCH --error={self._root_dir()}/%x.%a.{STARWALL_JOB_ERR}
-
-#SBATCH -A FUA36_UKAEA_ML
-
-##SBATCH --mail-type=FAIL
-##SBATCH --mail-user=<e-mail address>
-
+        self.settings.scheduler.write_array_job_script(
+            self._starwall_job_script(),
+            f"""
 ### Set environment
 source $HOME/.loaders/load_2017_env.sh
 source $HOME/.loaders/load_nov1_21_jorek.sh
@@ -182,7 +155,7 @@ export OMP_NUM_THREADS=1
 export I_MPI_PIN_MODE=lib
 
 # Obtain working directory name from reigster.
-line_num=$((${{SLURM_ARRAY_TASK_ID}} + 1))
+line_num=$((${{JOB_INDEX}} + 1))
 param_set="$(sed -n ${{line_num}}p {self._param_set_register()})"
 IFS=',' read -ra param_set_parts <<< "$param_set"
 param_set_name="${{param_set_parts[0]}}"
@@ -191,34 +164,25 @@ cd {self._root_dir()}/${{param_set_name}}
 
 mpirun {self._starwall_exec} {STARWALL_INPUT} \\
         | tee log.starwall
-            """
-            )
+            """,
+            job_name=f"{self.run_id}_jorek_init",
+            partition="skl_fua_prod",
+            time="00:30:00",
+            nodes=1,
+            ntasks_per_node=48,
+            cpus_per_task=1,
+            output=f"{self._root_dir()}/%x.%a.{STARWALL_JOB_OUT}",
+            error=f"{self._root_dir()}/%x.%a.{STARWALL_JOB_ERR}",
+            A="FUA36_UKAEA_ML",
+        )
 
         #############
         # JOREK Run #
         #############
 
-        with open(self._jorek_run_job_script(), "w") as f:
-            f.write(
-                f"""#!/bin/bash
-
-#SBATCH --job-name={self.run_id}_jorek_run
-#SBATCH --partition=skl_fua_prod
-##SBATCH --qos=skl_qos_fualprod
-#SBATCH --time=02:00:00
-
-#SBATCH --nodes=2
-#SBATCH --ntasks-per-node=1
-#SBATCH --mem 177GB
-
-#SBATCH --output={self._root_dir()}/%x.%a.{JOREK_RUN_JOB_OUT}
-#SBATCH --error={self._root_dir()}/%x.%a.{JOREK_RUN_JOB_ERR}
-
-#SBATCH -A FUA36_UKAEA_ML
-
-##SBATCH --mail-type=FAIL
-##SBATCH --mail-user=<e-mail address>
-
+        self.settings.scheduler.write_array_job_script(
+            self._jorek_run_job_script(),
+            f"""
 ### Set environment
 source $HOME/.loaders/load_2017_env.sh
 source $HOME/.loaders/load_nov1_21_jorek.sh
@@ -231,7 +195,7 @@ export I_MPI_PIN_DOMAIN=auto        # and have been useful for decreasing comput
 export KMP_HW_SUBSET=1t             # time on KNL
 
 # Obtain working directory name from reigster.
-line_num=$((${{SLURM_ARRAY_TASK_ID}} + 1))
+line_num=$((${{JOB_INDEX}} + 1))
 param_set="$(sed -n ${{line_num}}p {self._param_set_register()})"
 IFS=',' read -ra param_set_parts <<< "$param_set"
 param_set_name="${{param_set_parts[0]}}"
@@ -241,8 +205,17 @@ cd {self._root_dir()}/${{param_set_name}}
 mpirun -n 2                                \\
     {self._jorek_exec} < {JOREK_RUN_INPUT} \\
         | tee log.jorek_run
-            """
-            )
+            """,
+            job_name=f"{self.run_id}_jorek_run",
+            partition="skl_fua_prod",
+            time="02:00:00",
+            nodes=2,
+            ntasks_per_node=1,
+            mem="177GB",
+            output=f"{self._root_dir()}/%x.%a.{JOREK_RUN_JOB_OUT}",
+            error=f"{self._root_dir()}/%x.%a.{JOREK_RUN_JOB_ERR}",
+            A="FUA36_UKAEA_ML",
+        )
 
     def _build_working_directory(self, name: str, param_set: dict) -> None:
         copy_tree(self._template_dir, self._working_dir(name), preserve_symlinks=True)
