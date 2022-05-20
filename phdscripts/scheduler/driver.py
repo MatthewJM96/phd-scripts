@@ -1,9 +1,28 @@
-from abc import ABC, abstractclassmethod
+from abc import ABC, abstractmethod
 from typing import Optional
 
 
 class SchedulerDriver(ABC):
-    @abstractclassmethod
+    @abstractmethod
+    @staticmethod
+    def write_job_script(filename: str, contents: str, **kwargs):
+        """
+        Writes the job script with scheduler-specific parameterisation embedded.
+        """
+        pass
+
+    @abstractmethod
+    @staticmethod
+    def write_array_job_script(filename: str, contents: str, **kwargs):
+        """
+        Writes the job script with scheduler-specific parameterisation embedded. In this
+        case, array job-specific variables are set up:
+            JOB_INDEX: the index of the specific job within the array.
+        """
+        pass
+
+    @abstractmethod
+    @staticmethod
     def array_batch_jobs(
         job_script: str,
         job_count: int,

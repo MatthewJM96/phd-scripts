@@ -13,6 +13,28 @@ from .. import SchedulerDriver
 
 class LocalDriver(SchedulerDriver):
     @staticmethod
+    def write_job_script(filename: str, contents: str, **kwargs):
+        """
+        Writes the job script with scheduler-specific parameterisation embedded.
+        """
+        with open(filename, "w") as f:
+            f.write("#!/bin/env bash\n")
+
+            f.write(contents)
+
+    @staticmethod
+    def write_array_job_script(filename: str, contents: str, **kwargs):
+        """
+        Writes the job script with scheduler-specific parameterisation embedded. In this
+        case, array job-specific variables are set up:
+            JOB_INDEX: the index of the specific job within the array.
+        """
+        with open(filename, "w") as f:
+            f.write("#!/bin/env bash\n")
+
+            f.write(contents)
+
+    @staticmethod
     def _execute_local_script(index: int, job_script: str):
         env = environ.copy()
         env["JOB_INDEX"] = f"{index}"

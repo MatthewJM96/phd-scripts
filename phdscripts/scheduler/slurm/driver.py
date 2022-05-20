@@ -9,6 +9,39 @@ from .. import SchedulerDriver
 
 
 class SlurmDriver(SchedulerDriver):
+    @staticmethod
+    def write_job_script(filename: str, contents: str, **kwargs):
+        """
+        Writes the job script with scheduler-specific parameterisation embedded.
+        """
+        with open(filename, "w") as f:
+            f.write("#!/bin/env bash\n")
+
+            for key, val in kwargs.items():
+                f.write(f"#SBATCH --{key.replace('_', '-')}={val}")
+            f.write("\n")
+
+            f.write(contents)
+
+    @staticmethod
+    def write_array_job_script(filename: str, contents: str, **kwargs):
+        """
+        Writes the job script with scheduler-specific parameterisation embedded. In this
+        case, array job-specific variables are set up:
+            JOB_INDEX: the index of the specific job within the array.
+        """
+        with open(filename, "w") as f:
+            f.write("#!/bin/env bash\n")
+
+            for key, val in kwargs.items():
+                f.write(f"#SBATCH --{key.replace('_', '-')}={val}")
+            f.write("\n")
+
+            f.write("export JOB_INDEX=$SLURM_ARRAY_TASK_ID\n")
+
+            f.write(contents)
+
+    @staticmethod
     def array_batch_jobs(
         job_script: str,
         job_count: int,
