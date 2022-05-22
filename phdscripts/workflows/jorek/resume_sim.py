@@ -26,11 +26,13 @@ class ResumeJorekWorkflow(Workflow):
         settings: WorkflowSettings,
         original_jorek_input: str,
         jorek_exec: str,
+        param_changes: dict,
     ):
         super().__init__(run_id, settings)
 
         self.__original_jorek_input = original_jorek_input
         self._jorek_exec = jorek_exec
+        self._param_changes = param_changes
 
     def run(self):
         self.settings.scheduler.array_batch_jobs(
@@ -108,6 +110,30 @@ mpirun -n 2                            \\
             jorek_input = f.read()
 
         for param, value in param_set.items():
+            if param == "wall_distance":
+                continue
+
+            # Convert standard notation to Fortran's notation.
+            value_str = str(value)
+            value_str = re.sub(r"([0-9]+).?e(-?[0-9]+)", r"\1.d\2", value_str)
+
+            escaped_param = re.escape(param)
+            if (
+                re.search(rf"{escaped_param} *= *-?[0-9]+[.d\-?[0-9]*]?", jorek_input)
+                is not None
+            ):
+                jorek_input = re.sub(
+                    rf"{escaped_param} *= *-?[0-9]+[.d\-?[0-9]*]?",
+                    f"{param} = {value_str}",
+                    jorek_input,
+                )
+            else:
+                # TODO(Matthew): this actually breaks for now as there is a structure
+                #                to JOREK inputs that we need to handle (i.e. closing
+                #                "/" line).
+                jorek_input += f"\n{param} = {value_str}"
+
+        for param, value in self._param_changes.items():
             if param == "wall_distance":
                 continue
 
