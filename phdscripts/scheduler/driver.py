@@ -3,16 +3,16 @@ from typing import Optional
 
 
 class SchedulerDriver(ABC):
-    @abstractmethod
     @staticmethod
+    @abstractmethod
     def write_job_script(filename: str, contents: str, **kwargs):
         """
         Writes the job script with scheduler-specific parameterisation embedded.
         """
         pass
 
-    @abstractmethod
     @staticmethod
+    @abstractmethod
     def write_array_job_script(filename: str, contents: str, **kwargs):
         """
         Writes the job script with scheduler-specific parameterisation embedded. In this
@@ -21,8 +21,8 @@ class SchedulerDriver(ABC):
         """
         pass
 
-    @abstractmethod
     @staticmethod
+    @abstractmethod
     def array_batch_jobs(
         job_script: str,
         job_count: int,
