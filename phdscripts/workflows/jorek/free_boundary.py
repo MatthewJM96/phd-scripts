@@ -137,7 +137,7 @@ mpirun -n 2                                 \\
             mem="177GB",
             output=f"{self._root_dir()}/%x.%a.{JOREK_INIT_JOB_OUT}",
             error=f"{self._root_dir()}/%x.%a.{JOREK_INIT_JOB_ERR}",
-            A="FUA36_UKAEA_ML",
+            account="FUA36_UKAEA_ML",
         )
 
         ############
@@ -173,7 +173,7 @@ mpirun {self._starwall_exec} {STARWALL_INPUT} \\
             cpus_per_task=1,
             output=f"{self._root_dir()}/%x.%a.{STARWALL_JOB_OUT}",
             error=f"{self._root_dir()}/%x.%a.{STARWALL_JOB_ERR}",
-            A="FUA36_UKAEA_ML",
+            account="FUA36_UKAEA_ML",
         )
 
         #############
@@ -214,7 +214,7 @@ mpirun -n 2                                \\
             mem="177GB",
             output=f"{self._root_dir()}/%x.%a.{JOREK_RUN_JOB_OUT}",
             error=f"{self._root_dir()}/%x.%a.{JOREK_RUN_JOB_ERR}",
-            A="FUA36_UKAEA_ML",
+            account="FUA36_UKAEA_ML",
         )
 
     def _build_working_directory(self, name: str, param_set: dict) -> None:

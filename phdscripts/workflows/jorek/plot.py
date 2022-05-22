@@ -78,7 +78,7 @@ ln -s ~/tools/jorek.develop/util/ .
             ntasks_per_node=48,
             output=f"{self._root_dir()}/%x.%a.{PLOT_JOB_OUT}",
             error=f"{self._root_dir()}/%x.%a.{PLOT_JOB_ERR}",
-            A="FUA36_UKAEA_ML",
+            account="FUA36_UKAEA_ML",
         )
 
     def _build_working_directory(self, name: str, _: dict) -> None:
