@@ -12,7 +12,7 @@ JOREK_CONTINUE_JOB_SCRIPT = "jorek_continue.job.run"
 JOREK_CONTINUE_JOB_OUT = "jorek_continue.job.out"
 JOREK_CONTINUE_JOB_ERR = "jorek_continue.job.err"
 
-JOREK_INPUT = "input"
+JOREK_CONTINUE_INPUT = "input_jorek_continue"
 
 
 class PlotJorekWorkflow(Workflow):
@@ -20,10 +20,12 @@ class PlotJorekWorkflow(Workflow):
     Workflow for fixed-boundary Jorek runs.
     """
 
-    def __init__(self, run_id: str, settings: WorkflowSettings, jorek_input: str):
+    def __init__(
+        self, run_id: str, settings: WorkflowSettings, original_jorek_input: str
+    ):
         super().__init__(run_id, settings)
 
-        self._jorek_input = jorek_input
+        self.__original_jorek_input = original_jorek_input
 
     def run(self):
         self.settings.scheduler.array_batch_jobs(
@@ -33,8 +35,11 @@ class PlotJorekWorkflow(Workflow):
     def _job_script(self) -> str:
         return join_path(self._root_dir(), JOREK_CONTINUE_JOB_SCRIPT)
 
+    def _original_jorek_input(self, name: str) -> str:
+        return join_path(self._working_dir(name), self.__original_jorek_input)
+
     def _jorek_input(self, name: str) -> str:
-        return join_path(self._working_dir(name), self._jorek_input)
+        return join_path(self._working_dir(name), JOREK_CONTINUE_INPUT)
 
     def _canonical_param_set_name(self, param_set: dict) -> str:
         # TODO(Matthew): Do we prefer to use something like uuid? This might make
@@ -73,7 +78,7 @@ param_set_name="${{param_set_parts[0]}}"
 cd {self._root_dir()}/${{param_set_name}}
 
 mpirun -n 2                            \\
-    {self._jorek_exec} < {JOREK_INPUT} \\
+    {self._jorek_exec} < {JOREK_CONTINUE_INPUT} \\
         | tee log.jorek
             """,
             job_name=f"{self.run_id}_jorek_run",
@@ -91,10 +96,10 @@ mpirun -n 2                            \\
         if not isdir(self._working_dir(name)):
             raise ValueError(f"No existing directory for param set with name: {name}")
 
-        self._update_jorek_input_file(self._jorek_input(), param_set)
+        self._update_jorek_input_file(name, param_set)
 
-    def _update_jorek_input_file(self, filepath: str, param_set: dict) -> None:
-        with open(filepath, "r") as f:
+    def _update_jorek_input_file(self, name: str, param_set: dict) -> None:
+        with open(self._original_jorek_input(name), "r") as f:
             jorek_input = f.read()
 
         for param, value in param_set.items():
@@ -123,5 +128,5 @@ mpirun -n 2                            \\
 
         re.sub(r"restart += +\.(f|false)\.", "restart = .t.", value_str)
 
-        with open(filepath, "w") as f:
+        with open(self._jorek_input(name), "w") as f:
             f.write(jorek_input)
