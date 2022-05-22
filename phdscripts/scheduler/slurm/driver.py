@@ -18,7 +18,7 @@ class SlurmDriver(SchedulerDriver):
             f.write("#!/bin/env bash\n")
 
             for key, val in kwargs.items():
-                f.write(f"#SBATCH --{key.replace('_', '-')}={val}")
+                f.write(f"#SBATCH --{key.replace('_', '-')}={val}\n")
             f.write("\n")
 
             f.write(contents)
@@ -34,7 +34,7 @@ class SlurmDriver(SchedulerDriver):
             f.write("#!/bin/env bash\n")
 
             for key, val in kwargs.items():
-                f.write(f"#SBATCH --{key.replace('_', '-')}={val}")
+                f.write(f"#SBATCH --{key.replace('_', '-')}={val}\n")
             f.write("\n")
 
             f.write("export JOB_INDEX=$SLURM_ARRAY_TASK_ID\n")
