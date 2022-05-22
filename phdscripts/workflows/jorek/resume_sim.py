@@ -15,7 +15,7 @@ JOREK_CONTINUE_JOB_ERR = "jorek_continue.job.err"
 JOREK_CONTINUE_INPUT = "input_jorek_continue"
 
 
-class PlotJorekWorkflow(Workflow):
+class ResumeJorekWorkflow(Workflow):
     """
     Workflow for fixed-boundary Jorek runs.
     """
