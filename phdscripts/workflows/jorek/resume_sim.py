@@ -117,11 +117,11 @@ mpirun -n 2                            \\
 
             escaped_param = re.escape(param)
             if (
-                re.search(rf"{escaped_param} *= *-?[0-9]+[.d?[0-9]*]?", jorek_input)
+                re.search(rf"{escaped_param} *= *-?[0-9]+[.d\-?[0-9]*]?", jorek_input)
                 is not None
             ):
                 jorek_input = re.sub(
-                    rf"{escaped_param} *= *-?[0-9]+[.d?[0-9]*]?",
+                    rf"{escaped_param} *= *-?[0-9]+[.d\-?[0-9]*]?",
                     f"{param} = {value_str}",
                     jorek_input,
                 )
@@ -131,7 +131,7 @@ mpirun -n 2                            \\
                 #                "/" line).
                 jorek_input += f"\n{param} = {value_str}"
 
-        re.sub(r"restart += +\.(f|false)\.", "restart = .t.", value_str)
+        jorek_input = re.sub(r"restart += +\.(f|false)\.", "restart = .t.", jorek_input)
 
         with open(self._jorek_input(name), "w") as f:
             f.write(jorek_input)

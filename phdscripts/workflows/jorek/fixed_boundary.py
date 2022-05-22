@@ -116,9 +116,12 @@ mpirun -n 2                            \\
             value_str = str(value)
             value_str = re.sub(r"([0-9]+).?e(-?[0-9]+)", r"\1.d\2", value_str)
 
-            if re.search(rf"{param} *= *-?[0-9]+[.d?[0-9]*]?", jorek_input) is not None:
+            if (
+                re.search(rf"{param} *= *-?[0-9]+[.d\-?[0-9]*]?", jorek_input)
+                is not None
+            ):
                 jorek_input = re.sub(
-                    rf"{param} *= *-?[0-9]+[.d?[0-9]*]?",
+                    rf"{param} *= *-?[0-9]+[.d\-?[0-9]*]?",
                     f"{param} = {value_str}",
                     jorek_input,
                 )
