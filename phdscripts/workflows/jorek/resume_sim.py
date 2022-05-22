@@ -21,11 +21,16 @@ class ResumeJorekWorkflow(Workflow):
     """
 
     def __init__(
-        self, run_id: str, settings: WorkflowSettings, original_jorek_input: str
+        self,
+        run_id: str,
+        settings: WorkflowSettings,
+        original_jorek_input: str,
+        jorek_exec: str,
     ):
         super().__init__(run_id, settings)
 
         self.__original_jorek_input = original_jorek_input
+        self._jorek_exec = jorek_exec
 
     def run(self):
         self.settings.scheduler.array_batch_jobs(
