@@ -1,11 +1,7 @@
-from .fixed_boundary import JorekFixedBoundaryWorkflow
-from .free_boundary import JorekFreeBoundaryWorkflow
 from .plot import PlotJorekWorkflow
-from .resume_sim import ResumeJorekWorkflow
+from .workflow import JorekWorkflow
 
 __all__ = [
-    "JorekFixedBoundaryWorkflow",
-    "JorekFreeBoundaryWorkflow",
     "PlotJorekWorkflow",
-    "ResumeJorekWorkflow",
+    "JorekWorkflow",
 ]
