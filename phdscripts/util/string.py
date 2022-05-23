@@ -18,6 +18,12 @@ def convert_standard_to_fortran_number(target: str) -> str:
     return re.sub(__CAPTURED_STANDARD_NUMBER_PATTERN, r"\1.d\2", target)
 
 
+def has_fortran_number(pattern: str, target: str) -> bool:
+    pattern = pattern.replace("@", __FORTRAN_NUMBER_PATTERN, 1)
+
+    return re.search(pattern, target) is not None
+
+
 def replace_decimal_number(pattern: str, sub: str, target: str) -> str:
     """
     Replace a decimal number found within a given pattern.
