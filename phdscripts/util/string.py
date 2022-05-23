@@ -5,9 +5,9 @@ Utility functions for operating on strings.
 import re
 from typing import List
 
-__DECIMAL_NUMBER_PATTERN = r"[0-9]+[.[0-9]*]?"
-__FORTRAN_NUMBER_PATTERN = r"-?[0-9]+[.d\-?[0-9]*]?"
-__CAPTURED_STANDARD_NUMBER_PATTERN = r"(-?[0-9]+).?e(-?[0-9]+)"
+_DECIMAL_NUMBER_PATTERN = r"[0-9]+[.[0-9]*]?"
+_FORTRAN_NUMBER_PATTERN = r"-?[0-9]+[.d\-?[0-9]*]?"
+_CAPTURED_STANDARD_NUMBER_PATTERN = r"(-?[0-9]+).?e(-?[0-9]+)"
 
 
 def convert_standard_to_fortran_number(target: str) -> str:
@@ -15,11 +15,11 @@ def convert_standard_to_fortran_number(target: str) -> str:
     Replaces a standard notation number with an equivalent Fortran-compatible number
     representation.
     """
-    return re.sub(__CAPTURED_STANDARD_NUMBER_PATTERN, r"\1.d\2", target)
+    return re.sub(_CAPTURED_STANDARD_NUMBER_PATTERN, r"\1.d\2", target)
 
 
 def has_fortran_number(pattern: str, target: str) -> bool:
-    pattern = pattern.replace("@", __FORTRAN_NUMBER_PATTERN, 1)
+    pattern = pattern.replace("@", _FORTRAN_NUMBER_PATTERN, 1)
 
     return re.search(pattern, target) is not None
 
@@ -29,7 +29,7 @@ def replace_decimal_number(pattern: str, sub: str, target: str) -> str:
     Replace a decimal number found within a given pattern.
     """
 
-    pattern = "(" + pattern.replace("@", f"){__DECIMAL_NUMBER_PATTERN}(", 1) + ")"
+    pattern = "(" + pattern.replace("@", f"){_DECIMAL_NUMBER_PATTERN}(", 1) + ")"
 
     return re.sub(
         pattern,
@@ -52,7 +52,7 @@ def replace_fortran_number(pattern: str, sub: str, target: str) -> str:
     """
     # Place capture group around everything but the location to find a fortran number,
     # at which point place the regex pattern.
-    pattern = "(" + pattern.replace("@", f"){__FORTRAN_NUMBER_PATTERN}(", 1) + ")"
+    pattern = "(" + pattern.replace("@", f"){_FORTRAN_NUMBER_PATTERN}(", 1) + ")"
 
     return re.sub(
         pattern,
