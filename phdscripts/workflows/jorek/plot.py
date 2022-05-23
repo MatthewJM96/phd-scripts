@@ -14,6 +14,9 @@ PLOT_JOB_ERR = "plot.job.err"
 JOREK_INPUT = "input"
 
 
+# TODO(Matthew): Make this composable with general JOREK workflow so as to let a bunch
+#                of plots be generated as simulations complete rather than waiting
+#                for all simulations to complete and then running this.
 class PlotJorekWorkflow(Workflow):
     """
     Workflow for fixed-boundary Jorek runs.
