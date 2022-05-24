@@ -4,6 +4,7 @@ Contains the general workflow for Jorek runs.
 
 from os.path import isdir
 from os.path import join as join_path
+from typing import Optional
 
 from .. import Workflow, WorkflowSettings
 
@@ -27,9 +28,12 @@ class PlotJorekWorkflow(Workflow):
 
         self._jorek_input = jorek_input
 
-    def run(self):
+    def run(self, run_after: Optional[str] = None) -> str:
         self.settings.scheduler.array_batch_jobs(
-            self._job_script(), self._job_instances, self.settings.parallel_jobs
+            self._job_script(),
+            self._job_instances,
+            self.settings.parallel_jobs,
+            run_after,
         )
 
     def _job_script(self) -> str:
