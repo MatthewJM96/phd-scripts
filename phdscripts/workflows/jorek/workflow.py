@@ -69,13 +69,19 @@ class JorekWorkflow(Workflow):
         self._starwall_exec = starwall_exec
         self._starwall_params = starwall_params
 
-    def run(self):
+    def run(self, run_after: Optional[str] = None) -> str:
+        """
+        Schedules jobs required to complete this workflow. Returns the ID of the
+        last-scheduled jobs so as to allow other workflows to follow on from this
+        workflow.
+        """
         if not self._resume and self._starwall_exec is not None:
             # JOREK Initialisation
             jorek_init_id = self.settings.scheduler.array_batch_jobs(
                 self._jorek_init_job_script(),
                 self._job_instances,
                 self.settings.parallel_jobs,
+                array_dependency=run_after,
             )
             # STARWALL
             starwall_id = self.settings.scheduler.array_batch_jobs(
@@ -89,11 +95,11 @@ class JorekWorkflow(Workflow):
             starwall_id = None
 
         # JOREK Run
-        self.settings.scheduler.array_batch_jobs(
+        return self.settings.scheduler.array_batch_jobs(
             self._jorek_run_job_script(),
             self._job_instances,
             self.settings.parallel_jobs,
-            array_dependency=starwall_id,
+            array_dependency=starwall_id if starwall_id is not None else run_after,
         )
 
     def _input_jorek(self, name: str) -> str:

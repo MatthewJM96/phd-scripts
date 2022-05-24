@@ -8,7 +8,7 @@ from os import makedirs
 from os.path import isdir
 from os.path import join as join_path
 from re import fullmatch
-from typing import Dict
+from typing import Dict, Optional
 
 from phdscripts.parameter_pack import ParameterPack
 from phdscripts.scheduler import SchedulerDriver
@@ -69,7 +69,7 @@ class Workflow(ABC):
         self._write_param_set_register(param_sets)
 
     @abstractmethod
-    def run(self):
+    def run(self, run_after: Optional[str] = None) -> str:
         pass
 
     def _are_settings_good(self) -> bool:
