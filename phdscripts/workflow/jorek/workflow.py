@@ -187,7 +187,9 @@ class JorekWorkflow(Workflow):
         write_jorek_job_script(
             self.run_id,
             self.settings.scheduler,
-            self._jorek_init_job_script(),
+            self._jorek_resume_job_script()
+            if self._resume
+            else self._jorek_run_job_script(),
             self._param_set_register(),
             self._root_dir(),
             self._jorek_exec,
