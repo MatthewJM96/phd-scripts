@@ -241,8 +241,8 @@ class JorekWorkflow(Workflow):
             escaped_param = re.escape(param)
             if has_fortran_number(f"{escaped_param} *= *@", jorek_input):
                 jorek_input = replace_fortran_number(
-                    f"{escaped_param} *= *@",
-                    f"{param} = {value_str}",
+                    rf"(?<=(?:(?<=^)|(?<=[^_a-zA-Z])){escaped_param}) *= *@",
+                    f" = {value_str}",
                     jorek_input,
                 )
             else:

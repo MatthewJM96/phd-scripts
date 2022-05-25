@@ -52,11 +52,11 @@ def replace_fortran_number(pattern: str, sub: str, target: str) -> str:
     """
     # Place capture group around everything but the location to find a fortran number,
     # at which point place the regex pattern.
-    pattern = "(" + pattern.replace("@", f"){_FORTRAN_NUMBER_PATTERN}(", 1) + ")"
+    pattern = pattern.replace("@", _FORTRAN_NUMBER_PATTERN, 1)
 
     return re.sub(
         pattern,
-        f"\1{sub}\2",
+        sub,
         target,
     )
 
