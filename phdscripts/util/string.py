@@ -5,7 +5,7 @@ Utility functions for operating on strings.
 import re
 from typing import List
 
-_DECIMAL_NUMBER_PATTERN = r"[0-9]+[.[0-9]*]?"
+_DECIMAL_NUMBER_PATTERN = r"-?[0-9]+[.[0-9]*]?"
 _FORTRAN_NUMBER_PATTERN = r"-?[0-9]+[.d\-?[0-9]*]?"
 _CAPTURED_STANDARD_NUMBER_PATTERN = r"(-?[0-9]+).?e(-?[0-9]+)"
 _PARAM_START = r"(?:^|[^_a-zA-Z])"
