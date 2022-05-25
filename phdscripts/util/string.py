@@ -39,11 +39,11 @@ def replace_decimal_number(pattern: str, sub: str, target: str) -> str:
     Replace a decimal number found within a given pattern.
     """
 
-    pattern = "(" + pattern.replace("@", f"){_DECIMAL_NUMBER_PATTERN}(", 1) + ")"
+    pattern = pattern.replace("@", _DECIMAL_NUMBER_PATTERN, 1)
 
     return regex.sub(
         pattern,
-        f"\1{sub}\2",
+        sub,
         target,
     )
 
