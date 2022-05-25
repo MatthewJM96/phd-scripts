@@ -256,10 +256,10 @@ class JorekWorkflow(Workflow):
         # TODO(Matthew): support other parameters than wall distance.
 
         starwall_input = replace_parameterised_decimal_number_in_list(
-            "rc_w", 1, param_set["wall_distance"], starwall_input
+            "rc_w", 1, str(param_set["wall_distance"]), starwall_input
         )
         starwall_input = replace_parameterised_decimal_number_in_list(
-            "zs_w", 1, param_set["wall_distance"], starwall_input
+            "zs_w", 1, str(param_set["wall_distance"]), starwall_input
         )
 
         with open(self._input_starwall(name), "w") as f:
