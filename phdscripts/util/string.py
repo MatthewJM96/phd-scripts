@@ -2,8 +2,9 @@
 Utility functions for operating on strings.
 """
 
-import re
 from typing import List
+
+import regex
 
 _DECIMAL_NUMBER_PATTERN = r"-?[0-9]+[.[0-9]*]?"
 _FORTRAN_NUMBER_PATTERN = r"-?[0-9]+[.d\-?[0-9]*]?"
@@ -16,19 +17,19 @@ def convert_standard_to_fortran_number(target: str) -> str:
     Replaces a standard notation number with an equivalent Fortran-compatible number
     representation.
     """
-    return re.sub(_CAPTURED_STANDARD_NUMBER_PATTERN, r"\1.d\2", target)
+    return regex.sub(_CAPTURED_STANDARD_NUMBER_PATTERN, r"\1.d\2", target)
 
 
 def has_fortran_number(pattern: str, target: str) -> bool:
     pattern = pattern.replace("@", _FORTRAN_NUMBER_PATTERN, 1)
 
-    return re.search(pattern, target) is not None
+    return regex.search(pattern, target) is not None
 
 
 def has_parameterised_fortran_number(
     param_name: str, target: str, intermediate: str = " *= *"
 ) -> bool:
-    escaped_param_name = re.escape(param_name)
+    escaped_param_name = regex.escape(param_name)
 
     return has_fortran_number(rf"{escaped_param_name}{intermediate}@", target)
 
@@ -40,7 +41,7 @@ def replace_decimal_number(pattern: str, sub: str, target: str) -> str:
 
     pattern = "(" + pattern.replace("@", f"){_DECIMAL_NUMBER_PATTERN}(", 1) + ")"
 
-    return re.sub(
+    return regex.sub(
         pattern,
         f"\1{sub}\2",
         target,
@@ -58,7 +59,7 @@ def replace_decimal_numbers(pattern: str, subs: List[str], target: str) -> str:
 def replace_parameterised_decimal_number(
     param_name: str, sub: str, target: str, intermediate: str = " *= *"
 ) -> str:
-    escaped_param_name = re.escape(param_name)
+    escaped_param_name = regex.escape(param_name)
 
     return replace_decimal_number(
         rf"{_PARAM_START}{escaped_param_name}{intermediate}\K@",
@@ -76,7 +77,7 @@ def replace_parameterised_decimal_number_in_list(
     list_separator: str = ", *",
     list_begin: str = "",
 ) -> str:
-    escaped_param_name = re.escape(param_name)
+    escaped_param_name = regex.escape(param_name)
 
     pattern = rf"{_PARAM_START}{escaped_param_name}{intermediate}{list_begin}"
     for _ in range(index):
@@ -111,7 +112,7 @@ def replace_fortran_number(pattern: str, sub: str, target: str) -> str:
     # at which point place the regex pattern.
     pattern = pattern.replace("@", _FORTRAN_NUMBER_PATTERN, 1)
 
-    return re.sub(
+    return regex.sub(
         pattern,
         sub,
         target,
@@ -129,7 +130,7 @@ def replace_fortran_numbers(pattern: str, subs: List[str], target: str) -> str:
 def replace_parameterised_fortran_number(
     param_name: str, sub: str, target: str, intermediate: str = " *= *"
 ) -> str:
-    escaped_param_name = re.escape(param_name)
+    escaped_param_name = regex.escape(param_name)
 
     return replace_fortran_number(
         rf"{_PARAM_START}{escaped_param_name}{intermediate}\K@",
@@ -147,7 +148,7 @@ def replace_parameterised_fortran_number_in_list(
     list_separator: str = ", *",
     list_begin: str = "",
 ) -> str:
-    escaped_param_name = re.escape(param_name)
+    escaped_param_name = regex.escape(param_name)
 
     pattern = rf"{_PARAM_START}{escaped_param_name}{intermediate}{list_begin}"
     for _ in range(index):
