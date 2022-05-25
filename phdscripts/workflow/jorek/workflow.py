@@ -10,7 +10,7 @@ from typing import Optional
 from phdscripts.util import (
     convert_standard_to_fortran_number,
     has_fortran_number,
-    replace_decimal_numbers,
+    replace_decimal_number,
     replace_fortran_number,
 )
 from phdscripts.util.string import _DECIMAL_NUMBER_PATTERN
@@ -260,12 +260,12 @@ class JorekWorkflow(Workflow):
 
         # TODO(Matthew): support other parameters than wall distance.
 
-        starwall_input = replace_decimal_numbers(
+        starwall_input = replace_decimal_number(
             rf"(rc_w *= *{_DECIMAL_NUMBER_PATTERN}, *)@",
             rf"\1 {param_set['wall_distance']}",
             starwall_input,
         )
-        starwall_input = replace_decimal_numbers(
+        starwall_input = replace_decimal_number(
             rf"(zs_w *= *{_DECIMAL_NUMBER_PATTERN}, *)@",
             rf"\1 {param_set['wall_distance']}",
             starwall_input,
