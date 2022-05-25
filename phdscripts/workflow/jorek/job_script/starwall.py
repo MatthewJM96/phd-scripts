@@ -37,7 +37,7 @@ mpirun {starwall_exec} {input_filename} \\
             """,
         job_name=f"{run_id}_{log_name}",
         partition="skl_fua_prod",
-        time={walltime},
+        time=walltime,
         nodes=1,
         ntasks_per_node=48,
         cpus_per_task=1,
