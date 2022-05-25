@@ -11,7 +11,7 @@ from phdscripts.util import (
     convert_standard_to_fortran_number,
     has_fortran_number,
     replace_decimal_number,
-    replace_fortran_number,
+    replace_parameterised_fortran_number,
 )
 from phdscripts.util.string import _DECIMAL_NUMBER_PATTERN
 
@@ -240,10 +240,8 @@ class JorekWorkflow(Workflow):
 
             escaped_param = re.escape(param)
             if has_fortran_number(f"{escaped_param} *= *@", jorek_input):
-                jorek_input = replace_fortran_number(
-                    rf"(?<=(?:(?<=^)|(?<=[^_a-zA-Z])){escaped_param}) *= *@",
-                    f" = {value_str}",
-                    jorek_input,
+                jorek_input = replace_parameterised_fortran_number(
+                    escaped_param, value_str, jorek_input
                 )
             else:
                 # TODO(Matthew): this actually breaks for now as there is a structure

@@ -6,6 +6,8 @@ from .string import (
     replace_decimal_numbers,
     replace_fortran_number,
     replace_fortran_numbers,
+    replace_parameterised_decimal_number,
+    replace_parameterised_fortran_number,
 )
 
 __all__ = [
@@ -16,4 +18,6 @@ __all__ = [
     "replace_decimal_numbers",
     "replace_fortran_number",
     "replace_fortran_numbers",
+    "replace_parameterised_decimal_number",
+    "replace_parameterised_fortran_number",
 ]

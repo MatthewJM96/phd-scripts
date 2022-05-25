@@ -8,6 +8,7 @@ from typing import List
 _DECIMAL_NUMBER_PATTERN = r"[0-9]+[.[0-9]*]?"
 _FORTRAN_NUMBER_PATTERN = r"-?[0-9]+[.d\-?[0-9]*]?"
 _CAPTURED_STANDARD_NUMBER_PATTERN = r"(-?[0-9]+).?e(-?[0-9]+)"
+_LOOKBEHIND_PARAM_START = r"(?:(?<=^)|(?<=[^_a-zA-Z]))"
 
 
 def convert_standard_to_fortran_number(target: str) -> str:
@@ -46,6 +47,16 @@ def replace_decimal_numbers(pattern: str, subs: List[str], target: str) -> str:
     return target
 
 
+def replace_parameterised_decimal_number(
+    param_name: str, sub: str, target: str, intermediate: str = " *= *"
+) -> str:
+    replace_decimal_number(
+        rf"(?<={_LOOKBEHIND_PARAM_START}){param_name}){intermediate}@",
+        f" = {sub}",
+        target,
+    )
+
+
 def replace_fortran_number(pattern: str, sub: str, target: str) -> str:
     """
     Replaces a fortran number found within the given pattern.
@@ -67,3 +78,13 @@ def replace_fortran_numbers(pattern: str, subs: List[str], target: str) -> str:
         pattern = pattern.replace("@", sub, 1)
 
     return target
+
+
+def replace_parameterised_fortran_number(
+    param_name: str, sub: str, target: str, intermediate: str = " *= *"
+) -> str:
+    replace_fortran_number(
+        rf"(?<={_LOOKBEHIND_PARAM_START}){param_name}){intermediate}@",
+        f" = {sub}",
+        target,
+    )
