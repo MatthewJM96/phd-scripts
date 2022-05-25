@@ -8,7 +8,7 @@ from typing import List
 _DECIMAL_NUMBER_PATTERN = r"[0-9]+[.[0-9]*]?"
 _FORTRAN_NUMBER_PATTERN = r"-?[0-9]+[.d\-?[0-9]*]?"
 _CAPTURED_STANDARD_NUMBER_PATTERN = r"(-?[0-9]+).?e(-?[0-9]+)"
-_LOOKBEHIND_PARAM_START = r"(?:(?<=^)|(?<=[^_a-zA-Z]))"
+_PARAM_START = r"(?:^|[^_a-zA-Z])"
 
 
 def convert_standard_to_fortran_number(target: str) -> str:
@@ -61,8 +61,8 @@ def replace_parameterised_decimal_number(
     escaped_param_name = re.escape(param_name)
 
     return replace_decimal_number(
-        rf"(?<={_LOOKBEHIND_PARAM_START}{escaped_param_name}){intermediate}@",
-        f" = {sub}",
+        rf"{_PARAM_START}{escaped_param_name}{intermediate}\K@",
+        sub,
         target,
     )
 
@@ -96,7 +96,7 @@ def replace_parameterised_fortran_number(
     escaped_param_name = re.escape(param_name)
 
     return replace_fortran_number(
-        rf"(?<={_LOOKBEHIND_PARAM_START}{escaped_param_name}){intermediate}@",
-        f" = {sub}",
+        rf"{_PARAM_START}{escaped_param_name}{intermediate}\K@",
+        sub,
         target,
     )
