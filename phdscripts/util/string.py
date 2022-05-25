@@ -51,7 +51,7 @@ def replace_parameterised_decimal_number(
     param_name: str, sub: str, target: str, intermediate: str = " *= *"
 ) -> str:
     replace_decimal_number(
-        rf"(?<={_LOOKBEHIND_PARAM_START}){param_name}){intermediate}@",
+        rf"(?<={_LOOKBEHIND_PARAM_START}{param_name}){intermediate}@",
         f" = {sub}",
         target,
     )
@@ -84,7 +84,7 @@ def replace_parameterised_fortran_number(
     param_name: str, sub: str, target: str, intermediate: str = " *= *"
 ) -> str:
     replace_fortran_number(
-        rf"(?<={_LOOKBEHIND_PARAM_START}){param_name}){intermediate}@",
+        rf"(?<={_LOOKBEHIND_PARAM_START}{param_name}){intermediate}@",
         f" = {sub}",
         target,
     )
