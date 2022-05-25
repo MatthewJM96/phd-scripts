@@ -67,6 +67,42 @@ def replace_parameterised_decimal_number(
     )
 
 
+def replace_parameterised_decimal_number_in_list(
+    param_name: str,
+    index: int,
+    sub: str,
+    target: str,
+    intermediate: str = " *= *",
+    list_separator: str = ", *",
+    list_begin: str = "",
+) -> str:
+    escaped_param_name = re.escape(param_name)
+
+    pattern = rf"{_PARAM_START}{escaped_param_name}{intermediate}{list_begin}"
+    for _ in range(index):
+        pattern += rf"{_DECIMAL_NUMBER_PATTERN}{list_separator}"
+    pattern += r"\K@"
+
+    return replace_decimal_number(
+        pattern,
+        sub,
+        target,
+    )
+
+
+def replace_decimal_number_in_list(
+    index: str,
+    sub: str,
+    target: str,
+    intermediate: str = " *= *",
+    list_separator: str = ", *",
+    list_begin: str = "",
+) -> str:
+    return replace_parameterised_decimal_number_in_list(
+        "", index, sub, target, intermediate, list_separator, list_begin
+    )
+
+
 def replace_fortran_number(pattern: str, sub: str, target: str) -> str:
     """
     Replaces a fortran number found within the given pattern.
@@ -99,4 +135,40 @@ def replace_parameterised_fortran_number(
         rf"{_PARAM_START}{escaped_param_name}{intermediate}\K@",
         sub,
         target,
+    )
+
+
+def replace_parameterised_fortran_number_in_list(
+    param_name: str,
+    index: int,
+    sub: str,
+    target: str,
+    intermediate: str = " *= *",
+    list_separator: str = ", *",
+    list_begin: str = "",
+) -> str:
+    escaped_param_name = re.escape(param_name)
+
+    pattern = rf"{_PARAM_START}{escaped_param_name}{intermediate}{list_begin}"
+    for _ in range(index):
+        pattern += rf"{_FORTRAN_NUMBER_PATTERN}{list_separator}"
+    pattern += r"\K@"
+
+    return replace_fortran_number(
+        pattern,
+        sub,
+        target,
+    )
+
+
+def replace_fortran_number_in_list(
+    index: str,
+    sub: str,
+    target: str,
+    intermediate: str = " *= *",
+    list_separator: str = ", *",
+    list_begin: str = "",
+) -> str:
+    return replace_parameterised_fortran_number_in_list(
+        "", index, sub, target, intermediate, list_separator, list_begin
     )

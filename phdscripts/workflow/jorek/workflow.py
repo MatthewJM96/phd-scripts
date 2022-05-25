@@ -9,10 +9,9 @@ from typing import Optional
 from phdscripts.util import (
     convert_standard_to_fortran_number,
     has_parameterised_fortran_number,
-    replace_decimal_number,
+    replace_parameterised_decimal_number_in_list,
     replace_parameterised_fortran_number,
 )
-from phdscripts.util.string import _DECIMAL_NUMBER_PATTERN
 
 from .. import Workflow, WorkflowSettings
 from .job_script import write_jorek_job_script, write_starwall_job_script
@@ -256,15 +255,11 @@ class JorekWorkflow(Workflow):
 
         # TODO(Matthew): support other parameters than wall distance.
 
-        starwall_input = replace_decimal_number(
-            rf"(rc_w *= *{_DECIMAL_NUMBER_PATTERN}, *)@",
-            rf"\1 {param_set['wall_distance']}",
-            starwall_input,
+        starwall_input = replace_parameterised_decimal_number_in_list(
+            "rc_w", 1, param_set["wall_distance"], starwall_input
         )
-        starwall_input = replace_decimal_number(
-            rf"(zs_w *= *{_DECIMAL_NUMBER_PATTERN}, *)@",
-            rf"\1 {param_set['wall_distance']}",
-            starwall_input,
+        starwall_input = replace_parameterised_decimal_number_in_list(
+            "zs_w", 1, param_set["wall_distance"], starwall_input
         )
 
         with open(self._input_starwall(name), "w") as f:
