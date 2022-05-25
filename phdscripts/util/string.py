@@ -25,6 +25,14 @@ def has_fortran_number(pattern: str, target: str) -> bool:
     return re.search(pattern, target) is not None
 
 
+def has_parameterised_fortran_number(
+    param_name: str, target: str, intermediate: str = " *= *"
+) -> bool:
+    escaped_param_name = re.escape(param_name)
+
+    return has_fortran_number(rf"{escaped_param_name}{intermediate}@", target)
+
+
 def replace_decimal_number(pattern: str, sub: str, target: str) -> str:
     """
     Replace a decimal number found within a given pattern.
@@ -50,8 +58,10 @@ def replace_decimal_numbers(pattern: str, subs: List[str], target: str) -> str:
 def replace_parameterised_decimal_number(
     param_name: str, sub: str, target: str, intermediate: str = " *= *"
 ) -> str:
-    replace_decimal_number(
-        rf"(?<={_LOOKBEHIND_PARAM_START}{param_name}){intermediate}@",
+    escaped_param_name = re.escape(param_name)
+
+    return replace_decimal_number(
+        rf"(?<={_LOOKBEHIND_PARAM_START}{escaped_param_name}){intermediate}@",
         f" = {sub}",
         target,
     )
@@ -83,8 +93,10 @@ def replace_fortran_numbers(pattern: str, subs: List[str], target: str) -> str:
 def replace_parameterised_fortran_number(
     param_name: str, sub: str, target: str, intermediate: str = " *= *"
 ) -> str:
-    replace_fortran_number(
-        rf"(?<={_LOOKBEHIND_PARAM_START}{param_name}){intermediate}@",
+    escaped_param_name = re.escape(param_name)
+
+    return replace_fortran_number(
+        rf"(?<={_LOOKBEHIND_PARAM_START}{escaped_param_name}){intermediate}@",
         f" = {sub}",
         target,
     )

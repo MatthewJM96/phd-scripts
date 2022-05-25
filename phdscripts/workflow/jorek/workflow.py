@@ -2,14 +2,13 @@
 Contains the general workflow for Jorek runs.
 """
 
-import re
 from distutils.dir_util import copy_tree
 from os.path import join as join_path
 from typing import Optional
 
 from phdscripts.util import (
     convert_standard_to_fortran_number,
-    has_fortran_number,
+    has_parameterised_fortran_number,
     replace_decimal_number,
     replace_parameterised_fortran_number,
 )
@@ -238,10 +237,9 @@ class JorekWorkflow(Workflow):
 
             value_str = convert_standard_to_fortran_number(str(value))
 
-            escaped_param = re.escape(param)
-            if has_fortran_number(f"{escaped_param} *= *@", jorek_input):
+            if has_parameterised_fortran_number(param, jorek_input):
                 jorek_input = replace_parameterised_fortran_number(
-                    escaped_param, value_str, jorek_input
+                    param, value_str, jorek_input
                 )
             else:
                 # TODO(Matthew): this actually breaks for now as there is a structure
