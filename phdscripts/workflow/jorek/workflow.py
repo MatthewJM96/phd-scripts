@@ -212,20 +212,32 @@ class JorekWorkflow(Workflow):
             self._update_starwall_input_file(name, param_set)
 
     def _write_jorek_input_files(self, name: str, param_set: dict) -> None:
+        params = {**param_set, **self._jorek_params}
         if not self._resume:
             self._write_jorek_input_file(
                 name,
                 self._input_jorek_init(name),
-                {**param_set, **self._jorek_params, "tstep_n": 1.0, "nstep_n": 0},
+                {**params, "tstep_n": 1.0, "nstep_n": 0},
             )
-            self._write_jorek_input_file(
-                name, self._input_jorek_run(name), {**param_set, **self._jorek_params}
-            )
+
+            run_params = params
+            if self._timestep is not None:
+                run_params = {**run_params, "tstep_n": self._timestep}
+            if self._timestep_count is not None:
+                run_params = {**run_params, "nstep_n": self._timestep_count}
+
+            self._write_jorek_input_file(name, self._input_jorek_run(name), run_params)
         else:
+            resume_params = params
+            if self._timestep is not None:
+                resume_params = {**resume_params, "tstep_n": self._timestep}
+            if self._timestep_count is not None:
+                resume_params = {**resume_params, "nstep_n": self._timestep_count}
+
             self._write_jorek_input_file(
                 name,
                 self._input_jorek_resume(name),
-                {**param_set, **self._jorek_params, "restart": True},
+                {**resume_params, "restart": True},
             )
 
     def _write_jorek_input_file(
