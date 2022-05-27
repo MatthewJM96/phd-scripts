@@ -135,7 +135,7 @@ def replace_fortran_bool(pattern: str, sub: bool, target: str) -> str:
     """
     # Place capture group around everything but the location to find a fortran bool,
     # at which point place the regex pattern.
-    pattern = pattern.replace("@", _FORTRAN_NUMBER_PATTERN, 1)
+    pattern = pattern.replace("@", _FORTRAN_BOOL_PATTERN, 1)
 
     sub_str = convert_standard_to_fortran_bool(sub)
 
