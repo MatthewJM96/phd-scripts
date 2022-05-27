@@ -2,14 +2,25 @@
 Utility functions for operating on strings.
 """
 
-from typing import List
+from typing import List, Union
 
 import regex
+
+_PARAM_START = r"(?:^|[^_a-zA-Z])"
+
+_FORTRAN_BOOL_PATTERN = r"(?:.f.|.false.|.t.|.true.)"
 
 _DECIMAL_NUMBER_PATTERN = r"-?[0-9]+[.[0-9]*]?"
 _FORTRAN_NUMBER_PATTERN = r"-?[0-9]+[.d\-?[0-9]*]?"
 _CAPTURED_STANDARD_NUMBER_PATTERN = r"(-?[0-9]+).?e(-?[0-9]+)"
-_PARAM_START = r"(?:^|[^_a-zA-Z])"
+
+
+def convert_standard_to_fortran_bool(target: bool) -> str:
+    """
+    Replaces a standard notation bool with an equivalent Fortran-compatible bool
+    representation.
+    """
+    return ".t." if target else ".f."
 
 
 def convert_standard_to_fortran_number(target: str) -> str:
@@ -18,6 +29,20 @@ def convert_standard_to_fortran_number(target: str) -> str:
     representation.
     """
     return regex.sub(_CAPTURED_STANDARD_NUMBER_PATTERN, r"\1.d\2", target)
+
+
+def has_fortran_bool(pattern: str, target: str) -> bool:
+    pattern = pattern.replace("@", _FORTRAN_BOOL_PATTERN, 1)
+
+    return regex.search(pattern, target) is not None
+
+
+def has_parameterised_fortran_bool(
+    param_name: str, target: str, intermediate: str = " *= *"
+) -> bool:
+    escaped_param_name = regex.escape(param_name)
+
+    return has_fortran_bool(rf"{escaped_param_name}{intermediate}@", target)
 
 
 def has_fortran_number(pattern: str, target: str) -> bool:
@@ -104,7 +129,36 @@ def replace_decimal_number_in_list(
     )
 
 
-def replace_fortran_number(pattern: str, sub: str, target: str) -> str:
+def replace_fortran_bool(pattern: str, sub: bool, target: str) -> str:
+    """
+    Replaces a fortran bool found within the given pattern.
+    """
+    # Place capture group around everything but the location to find a fortran bool,
+    # at which point place the regex pattern.
+    pattern = pattern.replace("@", _FORTRAN_NUMBER_PATTERN, 1)
+
+    sub_str = convert_standard_to_fortran_bool(sub)
+
+    return regex.sub(
+        pattern,
+        sub_str,
+        target,
+    )
+
+
+def replace_parameterised_fortran_bool(
+    param_name: str, sub: bool, target: str, intermediate: str = " *= *"
+) -> str:
+    escaped_param_name = regex.escape(param_name)
+
+    return replace_fortran_bool(
+        rf"{_PARAM_START}{escaped_param_name}{intermediate}\K@",
+        sub,
+        target,
+    )
+
+
+def replace_fortran_number(pattern: str, sub: Union[int, float], target: str) -> str:
     """
     Replaces a fortran number found within the given pattern.
     """
@@ -112,14 +166,18 @@ def replace_fortran_number(pattern: str, sub: str, target: str) -> str:
     # at which point place the regex pattern.
     pattern = pattern.replace("@", _FORTRAN_NUMBER_PATTERN, 1)
 
+    sub_str = convert_standard_to_fortran_number(str(sub))
+
     return regex.sub(
         pattern,
-        sub,
+        sub_str,
         target,
     )
 
 
-def replace_fortran_numbers(pattern: str, subs: List[str], target: str) -> str:
+def replace_fortran_numbers(
+    pattern: str, subs: List[Union[int, float]], target: str
+) -> str:
     for sub in subs:
         target = replace_fortran_number(pattern, sub, target)
         pattern = pattern.replace("@", sub, 1)
@@ -128,7 +186,7 @@ def replace_fortran_numbers(pattern: str, subs: List[str], target: str) -> str:
 
 
 def replace_parameterised_fortran_number(
-    param_name: str, sub: str, target: str, intermediate: str = " *= *"
+    param_name: str, sub: Union[int, float], target: str, intermediate: str = " *= *"
 ) -> str:
     escaped_param_name = regex.escape(param_name)
 
@@ -142,7 +200,7 @@ def replace_parameterised_fortran_number(
 def replace_parameterised_fortran_number_in_list(
     param_name: str,
     index: int,
-    sub: str,
+    sub: Union[int, float],
     target: str,
     intermediate: str = " *= *",
     list_separator: str = ", *",
@@ -164,7 +222,7 @@ def replace_parameterised_fortran_number_in_list(
 
 def replace_fortran_number_in_list(
     index: str,
-    sub: str,
+    sub: Union[int, float],
     target: str,
     intermediate: str = " *= *",
     list_separator: str = ", *",

@@ -8,8 +8,10 @@ from typing import Optional
 
 from phdscripts.util import (
     convert_standard_to_fortran_number,
+    has_parameterised_fortran_bool,
     has_parameterised_fortran_number,
     replace_parameterised_decimal_number_in_list,
+    replace_parameterised_fortran_bool,
     replace_parameterised_fortran_number,
 )
 
@@ -223,7 +225,7 @@ class JorekWorkflow(Workflow):
             self._write_jorek_input_file(
                 name,
                 self._input_jorek_resume(name),
-                {**param_set, **self._jorek_params},
+                {**param_set, **self._jorek_params, "restart": True},
             )
 
     def _write_jorek_input_file(
@@ -238,17 +240,24 @@ class JorekWorkflow(Workflow):
 
             # TODO(Matthew): handle non-number cases! (e.g. bool flags)
 
-            value_str = convert_standard_to_fortran_number(str(value))
-
-            if has_parameterised_fortran_number(param, jorek_input):
-                jorek_input = replace_parameterised_fortran_number(
-                    param, value_str, jorek_input
-                )
-            else:
-                # TODO(Matthew): this actually breaks for now as there is a structure
-                #                to JOREK inputs that we need to handle (i.e. closing
-                #                "/" line).
-                jorek_input += f"\n{param} = {value_str}"
+            if isinstance(value, (float, int)):
+                if has_parameterised_fortran_number(param, jorek_input):
+                    jorek_input = replace_parameterised_fortran_number(
+                        param, value, jorek_input
+                    )
+                else:
+                    # TODO(Matthew): this actually breaks for now as there is a
+                    #                structure to JOREK inputs that we need to handle
+                    #                (i.e. closing "/" line).
+                    jorek_input += (
+                        f"\n{param} = "
+                        f"{convert_standard_to_fortran_number(str(value))}"
+                    )
+            elif isinstance(value, bool):
+                if has_parameterised_fortran_bool(param, jorek_input):
+                    jorek_input = replace_parameterised_fortran_bool(
+                        param, value, jorek_input
+                    )
 
         with open(output_filepath, "w") as f:
             f.write(jorek_input)
