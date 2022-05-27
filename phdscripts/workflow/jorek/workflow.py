@@ -240,7 +240,12 @@ class JorekWorkflow(Workflow):
 
             # TODO(Matthew): handle non-number cases! (e.g. bool flags)
 
-            if isinstance(value, (float, int)):
+            if isinstance(value, bool):
+                if has_parameterised_fortran_bool(param, jorek_input):
+                    jorek_input = replace_parameterised_fortran_bool(
+                        param, value, jorek_input
+                    )
+            elif isinstance(value, (float, int)):
                 if has_parameterised_fortran_number(param, jorek_input):
                     jorek_input = replace_parameterised_fortran_number(
                         param, value, jorek_input
@@ -252,11 +257,6 @@ class JorekWorkflow(Workflow):
                     jorek_input += (
                         f"\n{param} = "
                         f"{convert_standard_to_fortran_number(str(value))}"
-                    )
-            elif isinstance(value, bool):
-                if has_parameterised_fortran_bool(param, jorek_input):
-                    jorek_input = replace_parameterised_fortran_bool(
-                        param, value, jorek_input
                     )
 
         with open(output_filepath, "w") as f:
