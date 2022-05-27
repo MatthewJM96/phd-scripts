@@ -94,7 +94,9 @@ class JorekWorkflow(Workflow):
 
         # JOREK Run
         return self.settings.scheduler.array_batch_jobs(
-            self._jorek_run_job_script(),
+            self._jorek_resume_job_script()
+            if self._resume
+            else self._jorek_run_job_script(),
             self._job_instances,
             self.settings.parallel_jobs,
             array_dependency=starwall_id if starwall_id is not None else run_after,
