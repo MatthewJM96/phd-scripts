@@ -10,9 +10,11 @@ _PARAM_START = r"(?:^|[^_a-zA-Z])"
 
 _FORTRAN_BOOL_PATTERN = r"(?:.f.|.false.|.t.|.true.)"
 
-_DECIMAL_NUMBER_PATTERN = r"-?[0-9]+[.[0-9]*]?"
-_FORTRAN_NUMBER_PATTERN = r"-?[0-9]+[.d\-?[0-9]*]?"
-_CAPTURED_STANDARD_NUMBER_PATTERN = r"(-?[0-9]+).?e(-?[0-9]+)"
+_DECIMAL_NUMBER_PATTERN = r"\-?[0-9]+[.[0-9]*]?"
+_FORTRAN_NUMBER_PATTERN = rf"{_DECIMAL_NUMBER_PATTERN}[d{_DECIMAL_NUMBER_PATTERN}]?"
+_CAPTURED_STANDARD_NUMBER_PATTERN = (
+    rf"({_DECIMAL_NUMBER_PATTERN})e({_DECIMAL_NUMBER_PATTERN})"
+)
 
 
 def convert_standard_to_fortran_bool(target: bool) -> str:
