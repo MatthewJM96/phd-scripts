@@ -30,7 +30,7 @@ def convert_standard_to_fortran_number(target: str) -> str:
     Replaces a standard notation number with an equivalent Fortran-compatible number
     representation.
     """
-    return regex.sub(_CAPTURED_STANDARD_NUMBER_PATTERN, r"\1.d\2", target)
+    return regex.sub(_CAPTURED_STANDARD_NUMBER_PATTERN, r"\1d\2", target)
 
 
 def has_fortran_bool(pattern: str, target: str) -> bool:
