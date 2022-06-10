@@ -39,7 +39,7 @@ class Workflow(ABC):
                 )
             )
 
-        if fullmatch(r"[0-9A-Za-z]+", run_id):
+        if not fullmatch(r"[0-9A-Za-z_]+", run_id):
             msg = (
                 f"Provided run ID is invalid: {run_id}.\n"
                 "Run ID must be alphanumeric."
