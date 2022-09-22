@@ -1,7 +1,7 @@
 from phdscripts.scheduler import SchedulerDriver
 
 
-def write_jorek_job_script(
+def write_mishka_job_script(
     scheduler: SchedulerDriver,
     job_script_filename: str,
     register: str,
