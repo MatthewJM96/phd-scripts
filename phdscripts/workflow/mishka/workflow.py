@@ -107,8 +107,6 @@ class MishkaWorkflow(Workflow):
         with open(self._input_mishka_template(name), "r") as f:
             mishka_input = f.read()
 
-        # TODO(Matthew): Make this actually work for MISHKA fort.10 file.
-
         for param, value in param_set.items():
             if isinstance(value, bool):
                 if has_parameterised_fortran_bool(param, mishka_input):
@@ -122,8 +120,8 @@ class MishkaWorkflow(Workflow):
                     )
                 else:
                     # TODO(Matthew): this actually breaks for now as there is a
-                    #                structure to JOREK inputs that we need to handle
-                    #                (i.e. closing "/" line).
+                    #                structure to Mishka inputs that we need to handle
+                    #                (i.e. closing "&END" line).
                     mishka_input += (
                         f"\n{param} = "
                         f"{convert_standard_to_fortran_number(str(value))}"
