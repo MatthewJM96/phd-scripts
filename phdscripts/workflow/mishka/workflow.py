@@ -20,8 +20,8 @@ from .job_script import write_mishka_job_script
 MISHKA_JOB_SCRIPT = "mishka.job.run"
 MISHKA_JOB_OUT = "mishka.job.out"
 MISHKA_JOB_ERR = "mishka.job.err"
-MISHKA_TEMPLATE_INPUT = "input_mishka_template"
-MISHKA_INPUT = "input_mishka"
+MISHKA_TEMPLATE_INPUT = "fort.10"
+MISHKA_INPUT = "fort.10"
 
 
 class MishkaWorkflow(Workflow):
