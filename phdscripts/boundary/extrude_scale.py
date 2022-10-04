@@ -24,7 +24,7 @@ def extrude_scale(
         extruded_points.append(
             (
                 centre[0] + origin_vec[0] * (1.0 + distance),
-                centre[1] + origin_vec[1] * (1.0 * distance),
+                centre[1] + origin_vec[1] * (1.0 + distance),
             )
         )
 
