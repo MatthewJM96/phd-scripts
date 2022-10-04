@@ -2,6 +2,10 @@
 .vscode
 .idea
 
+# local python env
+.venv
+
+
 # macOS:
 .DS_STORE
 
