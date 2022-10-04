@@ -12,10 +12,10 @@ def extrude_scale(
 
     centre = (0.0, 0.0)
     for point in points:
-        centre[0] += point[0]
-        centre[1] += point[1]
-    centre[0] /= float(len(points))
-    centre[1] /= float(len(points))
+        centre = (centre[0] + point[0], centre[1] + point[1])
+
+    count = float(len(points))
+    centre = (centre[0] / count, centre[1] / count)
 
     extruded_points: List[Tuple[float, float]] = []
     for point in points:
