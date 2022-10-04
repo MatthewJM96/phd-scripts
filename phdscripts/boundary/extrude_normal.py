@@ -15,7 +15,7 @@ def extrude_normal(
     for i in range(len(points)):
         prior_point = points[i - 1]
         point = points[i]
-        next_point = points[i + 1]
+        next_point = points[i + 1] if i + 1 < len(points) else points[0]
 
         prior_vec = (point[0] - prior_point[0], point[1] - prior_point[1])
         next_vec = (point[0] - next_point[0], point[1] - next_point[1])
