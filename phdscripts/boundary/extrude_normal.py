@@ -35,12 +35,7 @@ def extrude_normal(
 
         grad_normalised = (grad[0] / grad_len, grad[1] / grad_len)
 
-        if (grad[0] > 0.0 and grad[1] > 0.0) or (grad[0] < 0.0 and grad[1] > 0.0):
-            normal = (grad_normalised[1], -grad_normalised[0])
-        else:
-            # if ((grad[0] >= 0.0 and grad[1] <= 0.0)
-            #  or (grad[0] <= 0.0 and grad[1] >= 0.0)):
-            normal = (-grad_normalised[1], grad_normalised[0])
+        normal = (-grad_normalised[1], grad_normalised[0])
 
         extrusion = (normal[0] * distance, normal[1] * distance)
 
