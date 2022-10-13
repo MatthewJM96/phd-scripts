@@ -331,7 +331,7 @@ def __write_jorek_namelist(
 
     REQUIRED_PARAMETERS = set({"psi", "ffprime", "q", "ne", "Te", "f(psi)", "R", "Z"})
     keys = set(parameters.keys())
-    if REQUIRED_PARAMETERS <= keys:
+    if REQUIRED_PARAMETERS > keys:
         print(
             (
                 "    Parameters provided do not at least include the required"
