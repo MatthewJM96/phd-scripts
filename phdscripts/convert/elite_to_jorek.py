@@ -202,6 +202,8 @@ def __parse_elite_input(elite_filepath: str) -> Tuple[bool, Dict[str, List[float
 
         params[param] = values
 
+    return True, params
+
 
 def __normalise_psi(psis: List[float]) -> List[float]:
     """
