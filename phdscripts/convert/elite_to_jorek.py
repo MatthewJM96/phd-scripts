@@ -372,16 +372,8 @@ def __write_jorek_namelist(
         print("    temperature values provided not converted succsesfully.")
         return False
 
-    success, r_boundary = parameters["R"]
-    if not success:
-        print("    R values on boundary could not be obtained.")
-        return False
-
-    success, z_boundary = parameters["Z"]
-    if not success:
-        print("    Z values on boundary could not be obtained.")
-        return False
-
+    r_boundary = parameters["R"]
+    z_boundary = parameters["Z"]
     if len(r_boundary) != len(z_boundary):
         print("    number of obtained R and Z boundary values are different.")
         return False
