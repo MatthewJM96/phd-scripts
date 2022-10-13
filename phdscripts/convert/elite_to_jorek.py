@@ -66,9 +66,9 @@ def __extract_per_flux_profile(
     # values, then te input file was ill-formatted, return
     # failure.
     if len(values) != flux_surface_count:
-        return (False, values)
+        return False, values
 
-    return (True, values)
+    return True, values
 
 
 def __extract_per_point_profile(
@@ -131,9 +131,9 @@ def __extract_per_point_profile(
     # values, then te input file was ill-formatted, return
     # failure.
     if len(values) != flux_surface_point_count:
-        return (False, values)
+        return False, values
 
-    return (True, values)
+    return True, values
 
 
 def __parse_elite_input(elite_filepath: str) -> Tuple[bool, Dict[str, List[float]]]:
@@ -144,7 +144,7 @@ def __parse_elite_input(elite_filepath: str) -> Tuple[bool, Dict[str, List[float
 
     if not isfile(elite_filepath):
         print("    File does not exist!")
-        return (False, {})
+        return False, {}
 
     elite_lines = []
     with open(elite_filepath, "r") as elite_file:
@@ -152,7 +152,7 @@ def __parse_elite_input(elite_filepath: str) -> Tuple[bool, Dict[str, List[float
 
     if elite_lines is None or elite_lines == "":
         print(f"Elite input file at:\n    {elite_filepath}\nis empty!")
-        return (False, {})
+        return False, {}
 
     # Read number of flux surfaces and number of points on each flux surface.
     success, flux_surface_count, flux_surface_point_count = __read_flux_metadata(
@@ -167,7 +167,7 @@ def __parse_elite_input(elite_filepath: str) -> Tuple[bool, Dict[str, List[float
                 "        respectively."
             )
         )
-        return (False, {})
+        return False, {}
 
     PER_FLUX_PARAMS = ["psi", "ffprime", "q", "ne", "Te", "f(psi)"]
     PER_POINT_BOUNDARY_PARAMS = ["R", "Z"]
@@ -181,7 +181,7 @@ def __parse_elite_input(elite_filepath: str) -> Tuple[bool, Dict[str, List[float
 
         if not success:
             print(f"    Could not parse parameter, {param}.")
-            return (False, {})
+            return False, {}
 
         params[param] = values
 
@@ -198,7 +198,7 @@ def __parse_elite_input(elite_filepath: str) -> Tuple[bool, Dict[str, List[float
 
         if not success:
             print(f"    Could not parse parameter, {param}.")
-            return (False, {})
+            return False, {}
 
         params[param] = values
 
@@ -244,9 +244,9 @@ def __ffprime(parameters: Dict[str, List[float]]) -> Tuple[bool, List[float]]:
 
     expected_value_count = len(parameters["psi"])
     if expected_value_count != len(parameters["ffprime"]):
-        return (False, [])
+        return False, []
 
-    return (True, [-val for val in parameters["ffprime"]])
+    return True, [-val for val in parameters["ffprime"]]
 
 
 def __q_profile(parameters: Dict[str, List[float]]) -> Tuple[bool, List[float]]:
@@ -256,9 +256,9 @@ def __q_profile(parameters: Dict[str, List[float]]) -> Tuple[bool, List[float]]:
 
     expected_value_count = len(parameters["psi"])
     if expected_value_count != len(parameters["q"]):
-        return (False, [])
+        return False, []
 
-    return (True, [-val for val in parameters["q"]])
+    return True, [-val for val in parameters["q"]]
 
 
 def __density(parameters: Dict[str, List[float]]) -> Tuple[bool, float, List[float]]:
@@ -268,7 +268,7 @@ def __density(parameters: Dict[str, List[float]]) -> Tuple[bool, float, List[flo
 
     expected_value_count = len(parameters["psi"])
     if expected_value_count != len(parameters["ne"]):
-        return (False, 0.0, [])
+        return False, 0.0, []
 
     # JOREK parameterises density as a profile normalised against on-axis density and
     # takes a central density value as on-axis density divided by 1e20.
@@ -283,19 +283,19 @@ def __density(parameters: Dict[str, List[float]]) -> Tuple[bool, float, List[flo
 
 def __temperature(
     parameters: Dict[str, List[float]], central_density: float
-) -> Tuple[bool, float, List[float]]:
+) -> Tuple[bool, List[float]]:
     """
     Obtain normalised temperature values from Elite input.
     """
 
     expected_value_count = len(parameters["psi"])
     if expected_value_count != len(parameters["Te"]):
-        return (False, 0.0, [])
+        return False, []
 
     # JOREK wants temperature normalised.
     temp_norm_factor = 2.0 * central_density * 1.0e20 * MU_0 * EV_TO_JOULES
 
-    return (True, [val / temp_norm_factor for val in parameters["Te"]])
+    return True, [val / temp_norm_factor for val in parameters["Te"]]
 
 
 def __write_profile(profile: List[List[float]], filepath: str) -> bool:
