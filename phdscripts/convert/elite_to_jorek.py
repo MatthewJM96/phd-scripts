@@ -298,13 +298,16 @@ def __temperature(
     return (True, [val / temp_norm_factor for val in parameters["Te"]])
 
 
-def __write_profile(profile: List[float], psi: List[float], filepath: str) -> bool:
-    if len(profile) != len(psi):
-        return False
+def __write_profile(profile: List[List[float]], filepath: str) -> bool:
+    for idx in range(1, len(profile)):
+        if len(profile[idx]) != len(profile[0]):
+            return False
 
     with open(filepath, "w") as profile_file:
-        for idx in range(len(profile)):
-            profile_file.write(f"{psi[idx]} {profile[idx]}\n")
+        for idx in range(len(profile[0])):
+            for component in profile:
+                profile_file.write(f"{component[idx]} ")
+            profile_file.write("\n")
 
     return True
 
@@ -314,6 +317,7 @@ def __write_jorek_namelist(
     density_filepath: str,
     temperature_filepath: str,
     ffprime_filepath: str,
+    rz_boundary_filepath: str,
     parameters: Dict[str, List[float]],
 ) -> bool:
     """
@@ -385,11 +389,18 @@ def __write_jorek_namelist(
     z_geo = (z_boundary[0] + z_boundary[-1]) / 2.0
 
     # Write profiles to their files.
-    success = __write_profile(density_profile, psi, density_filepath)
+    #   Density
+    success = __write_profile([psi, density_profile], density_filepath)
+    #   Temperature
     success = success and __write_profile(
-        temperature_profile, psi, temperature_filepath
+        [psi, temperature_profile], temperature_filepath
     )
-    success = success and __write_profile(ffprime_profile, psi, ffprime_filepath)
+    #   FFprime
+    success = success and __write_profile([psi, ffprime_profile], ffprime_filepath)
+    #   R-Z
+    success = success and __write_profile(
+        [r_boundary, z_boundary, [psi[-1]] * len(r_boundary)], rz_boundary_filepath
+    )
     if not success:
         print("    could not write one of the profiles.")
         return False
@@ -414,9 +425,7 @@ def __write_jorek_namelist(
         "  mf        = 0\n"
         "\n"
         f"  n_boundary = {n_boundary}\n"
-        f"  R_boundary = {str(r) + ' ' for r in r_boundary}\n"
-        f"  Z_boundary = {str(z) + ' ' for z in z_boundary}\n"
-        f"  psi_boundary = {str(psi[-1])  + ' ' for _ in z_boundary}\n"
+        f"  R_Z_psi_bnd_file = {rz_boundary_filepath}\n"
         "\n"
         f"  R_geo = {r_geo}\n"
         f"  Z_geo = {z_geo}\n"
@@ -468,6 +477,7 @@ def convert_elite_to_jorek(
     density_filepath: str = "density.txt",
     temperature_filepath: str = "temperature.txt",
     ffprime_filepath: str = "ffprime.txt",
+    rz_boundary_filepath: str = "rz_boundary.txt",
 ) -> None:
     print(("Parsing Elite input file:\n" f"    {elite_filepath}\n"))
 
@@ -489,6 +499,7 @@ def convert_elite_to_jorek(
         density_filepath,
         temperature_filepath,
         ffprime_filepath,
+        rz_boundary_filepath,
         elite_params,
     )
     if not success:
