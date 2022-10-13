@@ -418,7 +418,7 @@ def __write_jorek_namelist(
         "  mf        = 0\n"
         "\n"
         f"  n_boundary = {n_boundary}\n"
-        f"  R_Z_psi_bnd_file = {basename(rz_boundary_filepath)}\n"
+        f'  R_Z_psi_bnd_file = "{basename(rz_boundary_filepath)}"\n'
         "\n"
         f"  R_geo = {r_geo}\n"
         f"  Z_geo = {z_geo}\n"
