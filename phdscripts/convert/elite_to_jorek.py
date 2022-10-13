@@ -1,6 +1,7 @@
 from os.path import basename, isfile
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 
+from phdscripts.boundary import decomp_fourier
 from phdscripts.physical_constants import EV_TO_JOULES, MU_0
 
 
@@ -351,7 +352,7 @@ def __write_jorek_namelist(
     # Get ffprime, JOREK requires these to be negated.
     success, ffprime_profile = __ffprime(parameters)
     if not success:
-        print("    ffprime values provided not converted succsesfully.")
+        print("    FFprime values provided not converted succsesfully.")
         return False
 
     # For now we aren't using this, really only useful as a diagnostic.
@@ -363,19 +364,19 @@ def __write_jorek_namelist(
     # Get central density and density profile.
     success, central_density, density_profile = __density(parameters)
     if not success:
-        print("    density values provided not converted succsesfully.")
+        print("    Density values provided not converted succsesfully.")
         return False
 
     # Get temperatures.
     success, temperature_profile = __temperature(parameters, central_density)
     if not success:
-        print("    temperature values provided not converted succsesfully.")
+        print("    Temperature values provided not converted succsesfully.")
         return False
 
     r_boundary = parameters["R"]
     z_boundary = parameters["Z"]
     if len(r_boundary) != len(z_boundary):
-        print("    number of obtained R and Z boundary values are different.")
+        print("    Number of obtained R and Z boundary values are different.")
         return False
 
     n_boundary = len(r_boundary)
@@ -396,7 +397,7 @@ def __write_jorek_namelist(
         [r_boundary, z_boundary, [psi[-1]] * len(r_boundary)], rz_boundary_filepath
     )
     if not success:
-        print("    could not write one of the profiles.")
+        print("    Could not write one of the profiles.")
         return False
 
     contents = (
@@ -465,9 +466,92 @@ def __write_jorek_namelist(
     return True
 
 
+def __write_starwall_namelist(
+    starwall_filepath: str,
+    modes: Tuple[int, int],
+    parameters: Dict[str, List[float]],
+) -> bool:
+    """
+    Writes a STARWALL namelist file based on the provided values for the various
+    parameters obtained from an Elite input file. Of course no requirement is placed on
+    these parameters of actually coming from an Elite input file, but they must follow
+    Elite conventions and normalisations.
+    """
+
+    REQUIRED_PARAMETERS = set({"R", "Z"})
+    keys = set(parameters.keys())
+    if REQUIRED_PARAMETERS > keys:
+        print(
+            (
+                "    Parameters provided do not at least include the required"
+                "parameters.\n"
+                f"        Parameters provided were: {keys}\n"
+                f"        Parameters required are: {REQUIRED_PARAMETERS}\n"
+            )
+        )
+        return False
+
+    if len(parameters["R"]) != len(parameters["Z"]):
+        print("    Number of obtained R and Z boundary values are different.")
+        return False
+
+    points: List[Tuple[float, float]] = []
+    for idx in range(len(parameters["R"])):
+        points.append((parameters["R"][idx], parameters["Z"][idx]))
+
+    fourier_coeffs = decomp_fourier(points, modes)
+
+    n_w_str = ""
+    m_w_str = ""
+    rc_w_str = ""
+    rs_w_str = ""
+    zc_w_str = ""
+    zs_w_str = ""
+    for mode, coeffs in fourier_coeffs.items():
+        n_w_str += "0 "
+        m_w_str += f"{mode} "
+        rc_w_str += f"{coeffs[0]} "
+        rs_w_str += f"{coeffs[1]} "
+        zc_w_str += f"{coeffs[2]} "
+        zs_w_str += f"{coeffs[3]} "
+
+    contents = (
+        "&PARAMS\n"
+        "  i_response = 2\n"
+        "  n_harm     = 1\n"
+        "  n_tor      = 1\n"
+        "  nv         = 40\n"
+        "  delta      = 0.001\n"
+        "  n_points   = 14\n"
+        "  nwall      = 1\n"
+        "  iwall      = 1\n"
+        "/\n"
+        "\n"
+        "&PARAMS_WALL\n"
+        "  eta_thin_w = 1.d-4\n"
+        "  nwu        = 32\n"
+        "  nwv        = 32\n"
+        f"  mn_w       = {len(fourier_coeffs.keys())}\n"
+        f"  n_w        = {n_w_str}\n"
+        f"  m_w        = {m_w_str}\n"
+        f"  rc_w       = {rc_w_str}\n"
+        f"  rs_w       = {rs_w_str}\n"
+        f"  zc_w       = {zc_w_str}\n"
+        f"  zs_w       = {zs_w_str}\n"
+        "/\n"
+    )
+
+    with open(starwall_filepath, "w") as starwall_file:
+        starwall_file.write(contents)
+
+    return True
+
+
 def convert_elite_to_jorek(
     elite_filepath: str,
     jorek_filepath: str,
+    starwall_filepath: Optional[str] = None,
+    starwall_modes: Tuple[int, int] = (-1, 1),
     density_filepath: str = "density.txt",
     temperature_filepath: str = "temperature.txt",
     ffprime_filepath: str = "ffprime.txt",
@@ -501,3 +585,12 @@ def convert_elite_to_jorek(
         return
 
     print("Successfully written JOREK namelist.")
+
+    if starwall_filepath is not None:
+        print("Writing STARWALL namelist.")
+
+        success = __write_starwall_namelist(
+            starwall_filepath, starwall_modes, elite_params
+        )
+
+        print("Successfully written STARWALL namelist.")
