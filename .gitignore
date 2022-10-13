@@ -5,6 +5,8 @@
 # local python env
 .venv
 
+# local testing
+test/
 
 # macOS:
 .DS_STORE
