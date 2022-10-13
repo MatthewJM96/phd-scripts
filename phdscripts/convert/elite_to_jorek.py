@@ -1,8 +1,16 @@
 from os.path import isfile
 from typing import Dict, List, Tuple
 
+from phdscripts.physical_constants import EV_TO_JOULES, MU_0
+
 
 def __read_flux_metadata(lines: List[str]) -> Tuple[bool, int, int]:
+    """
+    Reads the flux metadata from the given Elite input lines. This metadata is assumed
+    to be two integers, the first the number of flux surfaces and the second the number
+    of points on each flux surface.
+    """
+
     metadata = lines[1].split()
 
     # If metadata line wasn't made of two non-whitespace things,
@@ -24,6 +32,12 @@ def __read_flux_metadata(lines: List[str]) -> Tuple[bool, int, int]:
 def __extract_per_flux_profile(
     lines: List[str], param: str, flux_surface_point_count: int
 ) -> Tuple[bool, List[float]]:
+    """
+    Extracts the named parameter from the provided Elite input lines. The assumption is
+    that the Elite input file has the parameter provided as a block where each value in
+    the block is the value of that parameter on a given flux surface.
+    """
+
     values: List[float] = []
 
     found_start = False
@@ -64,6 +78,13 @@ def __extract_per_point_profile(
     flux_surface_count: int,
     flux_surface_point_count: int,
 ) -> Tuple[bool, List[float]]:
+    """
+    Extracts the named parameter from the provided Elite input lines. The assumption is
+    that the Elite input file has the parameter provided in blocks where each block is
+    given as a point in terms of some parameter (usually poloidal angle) and each value
+    in a block is the value of that point on one of the flux surfaces.
+    """
+
     values: List[float] = []
 
     flux_cursor = 0
@@ -116,6 +137,11 @@ def __extract_per_point_profile(
 
 
 def __parse_elite_input(elite_filepath: str) -> Tuple[bool, Dict[str, List[float]]]:
+    """
+    Parses the named elite inpuit, extracting the parameters needed to construct a
+    JOREK namelist from.
+    """
+
     if not isfile(elite_filepath):
         print("    File does not exist!")
         return (False, {})
@@ -177,9 +203,196 @@ def __parse_elite_input(elite_filepath: str) -> Tuple[bool, Dict[str, List[float
         params[param] = values
 
 
+def __normalise_psi(psis: List[float]) -> List[float]:
+    """
+    Normalises the given flux surface values, it is assumed that these values are sorted
+    with psis[0] being on-axis flux and psis[-1] being edge flux.
+    """
+
+    normalised_psi: List[float] = []
+
+    psi_axis = psis[0]
+    psi_edge = psis[-1]
+    for psi in psis:
+        normalised_psi.append((psi - psi_axis) / (psi_edge - psi_axis))
+
+    return normalised_psi
+
+
+def __psi(parameters: Dict[str, List[float]]) -> List[float]:
+    """
+    Obtain normalised psi values from Elite input.
+
+    Really just here to have a consistent API.
+    """
+
+    return __normalise_psi(parameters["psi"])
+
+
+def __F0(parameters: Dict[str, List[float]]) -> List[float]:
+    """
+    Obtain F value on-axis.
+    """
+
+    return parameters["f(psi)"][0]
+
+
+def __ffprime(parameters: Dict[str, List[float]]) -> Tuple[bool, List[float]]:
+    """
+    Obtain negated ffprime values from Elite input.
+    """
+
+    expected_value_count = len(parameters["psi"])
+    if expected_value_count != len(parameters["ffprime"]):
+        return (False, [])
+
+    return (True, [-val for val in parameters["ffprime"]])
+
+
+def __q_profile(parameters: Dict[str, List[float]]) -> Tuple[bool, List[float]]:
+    """
+    Obtain negated q-profile values from Elite input.
+    """
+
+    expected_value_count = len(parameters["psi"])
+    if expected_value_count != len(parameters["q"]):
+        return (False, [])
+
+    return (True, [-val for val in parameters["q"]])
+
+
+def __density(parameters: Dict[str, List[float]]) -> Tuple[bool, float, List[float]]:
+    """
+    Obtain central density and normalised density values from Elite input.
+    """
+
+    expected_value_count = len(parameters["psi"])
+    if expected_value_count != len(parameters["ne"]):
+        return (False, 0.0, [])
+
+    # JOREK parameterises density as a profile normalised against on-axis density and
+    # takes a central density value as on-axis density divided by 1e20.
+    central_density = parameters["ne"][0] / 1.0e20
+
+    return (
+        True,
+        central_density,
+        [val / parameters["ne"][0] for val in parameters["ne"]],
+    )
+
+
+def __temperature(
+    parameters: Dict[str, List[float]], central_density: float
+) -> Tuple[bool, float, List[float]]:
+    """
+    Obtain normalised temperature values from Elite input.
+    """
+
+    expected_value_count = len(parameters["psi"])
+    if expected_value_count != len(parameters["Te"]):
+        return (False, 0.0, [])
+
+    # JOREK wants temperature normalised.
+    temp_norm_factor = 2.0 * central_density * 1.0e20 * MU_0 * EV_TO_JOULES
+
+    return (True, [val / temp_norm_factor for val in parameters["Te"]])
+
+
+def __write_profile(profile: List[float], psi: List[float], filepath: str) -> bool:
+    if len(profile) != len(psi):
+        return False
+
+    with open(filepath, "w") as profile_file:
+        for idx in range(len(profile)):
+            profile_file.write(f"{psi[idx]} {profile[idx]}\n")
+
+    return True
+
+
 def __write_jorek_namelist(
-    jorek_filepath: str, parameters: Dict[str, List[float]]
+    jorek_filepath: str,
+    density_filepath: str,
+    temperature_filepath: str,
+    ffprime_filepath: str,
+    parameters: Dict[str, List[float]],
 ) -> bool:
+    """
+    Writes a JOREK namelist file based on the provided values for the various parameters
+    obtained from an Elite input file. Of course no requirement is placed on these
+    parameters of actually coming from an Elite input file, but they must follow Elite
+    conventions and normalisations.
+    """
+
+    REQUIRED_PARAMETERS = set({"psi", "ffprime", "q", "ne", "Te", "f(psi)", "R", "Z"})
+    keys = set(parameters.keys())
+    if REQUIRED_PARAMETERS <= keys:
+        print(
+            (
+                "    Parameters provided do not at least include the required"
+                "parameters.\n"
+                f"        Parameters provided were: {keys}\n"
+                f"        Parameters required are: {REQUIRED_PARAMETERS}\n"
+            )
+        )
+        return False
+
+    # Get normalised psi values along flux surfaces.
+    psi = __psi(parameters)
+
+    # Get F0.
+    F0 = __F0(parameters)
+
+    # Get ffprime, JOREK requires these to be negated.
+    success, ffprime_profile = __ffprime(parameters)
+    if not success:
+        print("    ffprime values provided not converted succsesfully.")
+        return False
+
+    # For now we aren't using this, really only useful as a diagnostic.
+    # # Get q-profile, JOREK requires these to be negated.
+    # success, q_profile = __q_profile(parameters)
+    # if not success:
+    #     print("    q-profile values provided not converted succsesfully.")
+
+    # Get central density and density profile.
+    success, central_density, density_profile = __density(parameters)
+    if not success:
+        print("    density values provided not converted succsesfully.")
+        return False
+
+    # Get temperatures.
+    success, temperature_profile = __temperature(parameters, central_density)
+    if not success:
+        print("    temperature values provided not converted succsesfully.")
+        return False
+
+    success, r_boundary = parameters["R"]
+    if not success:
+        print("    R values on boundary could not be obtained.")
+        return False
+
+    success, z_boundary = parameters["Z"]
+    if not success:
+        print("    Z values on boundary could not be obtained.")
+        return False
+
+    if len(r_boundary) != len(z_boundary):
+        print("    number of obtained R and Z boundary values are different.")
+        return False
+
+    n_boundary = len(r_boundary)
+    r_geo = (r_boundary[0] + r_boundary[-1]) / 2.0
+    z_geo = (z_boundary[0] + z_boundary[-1]) / 2.0
+
+    # Write profiles to their files.
+    success = __write_profile(density_profile, psi, density_filepath)
+    success = success and __write_profile(
+        temperature_profile, psi, temperature_filepath
+    )
+    success = success and __write_profile(ffprime_profile, psi, ffprime_filepath)
+    if not success:
+        print("    could not write one of the profiles.")
+        return False
 
     contents = (
         "&in1\n"
@@ -189,8 +402,10 @@ def __write_jorek_namelist(
         "  tstep_n   = 5.\n"
         "  nstep_n   = 0\n"
         "\n"
-        "  freeboundary = .f.\n"
+        "  freeboundary = .t.\n"
         "  wall_resistivity_fact = 1.\n"
+        "\n"
+        "  linear_run = .t.\n"
         "\n"
         "  nout = 1\n"
         "\n"
@@ -198,6 +413,47 @@ def __write_jorek_namelist(
         "  fbnd(2:4) = 0.\n"
         "  mf        = 0\n"
         "\n"
+        f"  n_boundary = {n_boundary}\n"
+        f"  R_boundary = {str(r) + ' ' for r in r_boundary}\n"
+        f"  Z_boundary = {str(z) + ' ' for z in z_boundary}\n"
+        f"  psi_boundary = {str(psi[-1])  + ' ' for _ in z_boundary}\n"
+        "\n"
+        f"  R_geo = {r_geo}\n"
+        f"  Z_geo = {z_geo}\n"
+        "\n"
+        "  amin = 1.0\n"
+        "\n"
+        f"  F0 = {F0}\n"
+        "\n"
+        f"  central_density = {central_density}\n"
+        f'  rho_file = "{density_filepath}"\n'
+        f'  T_file   = "{temperature_filepath}"\n'
+        f'  ffprime_file = "{ffprime_filepath}"\n'
+        "\n"
+        "  fix_axis_nodes = .t.\n"
+        "  axis_srch_radius = 2.0\n"
+        "\n"
+        "  n_radial = 60 !240 !210 !130\n"
+        "  n_pol    = 60 !205 !180 !110\n"
+        "\n"
+        "  n_flux   = 35 !120 !90 !55\n"
+        "  n_tht    = 55 !160 !125 !80\n"
+        "\n"
+        "  visco_T_dependent = .f.\n"
+        "\n"
+        "  eta   = 1.d-8\n"
+        "  visco = 1.d-10\n"
+        "  visco_par = 1.d-10\n"
+        "  eta_num = 0.d0\n"
+        "  visco_num = 0.d0\n"
+        "\n"
+        "  D_par  = 0.d0\n"
+        "  D_perp = 1.d-10\n"
+        "  ZK_par  = 0.d0\n"
+        "  ZK_perp = 1.d-10\n"
+        "\n"
+        "  heatsource     = 0.d0\n"
+        "  particlesource = 0.d0\n"
     )
 
     with open(jorek_filepath, "w") as jorek_file:
@@ -206,7 +462,13 @@ def __write_jorek_namelist(
     return True
 
 
-def convert_elite_to_jorek(elite_filepath: str, jorek_filepath: str) -> None:
+def convert_elite_to_jorek(
+    elite_filepath: str,
+    jorek_filepath: str,
+    density_filepath: str = "density.txt",
+    temperature_filepath: str = "temperature.txt",
+    ffprime_filepath: str = "ffprime.txt",
+) -> None:
     print(("Parsing Elite input file:\n" f"    {elite_filepath}\n"))
 
     success, elite_params = __parse_elite_input(elite_filepath)
@@ -222,7 +484,13 @@ def convert_elite_to_jorek(elite_filepath: str, jorek_filepath: str) -> None:
         )
     )
 
-    success = __write_jorek_namelist(jorek_filepath, elite_params)
+    success = __write_jorek_namelist(
+        jorek_filepath,
+        density_filepath,
+        temperature_filepath,
+        ffprime_filepath,
+        elite_params,
+    )
     if not success:
         print("Failed to write JOREK namelist, reason above.")
         return
