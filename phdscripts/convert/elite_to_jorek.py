@@ -100,17 +100,17 @@ def __extract_per_point_profile(
         # If we have found the start of the values for this parameter,
         # then handle ingestion.
         if found_start:
-            # If we have ingested all the values, break.
-            if len(values) == flux_surface_point_count:
-                break
             # If we have flux cursor equal to flux target, then we can
             # retrieve the value for the point on the target flux surface.
-            if flux_cursor == flux_surface_target:
+            if flux_cursor >= flux_surface_target:
                 values.append(point_values[flux_cursor - 1])
             # If we have hit end of flux surfaces for this point, wrap flux
             # cursor.
             if flux_cursor == flux_surface_count:
-                flux_cursor = 0
+                flux_cursor -= flux_surface_target
+            # If we have ingested all the values, break.
+            if len(values) == flux_surface_point_count:
+                break
             # Get values on this line.
             values_str = line.split()
             for value_str in values_str:
