@@ -1,4 +1,4 @@
-from os.path import isfile
+from os.path import basename, isfile
 from typing import Dict, List, Tuple
 
 from phdscripts.physical_constants import EV_TO_JOULES, MU_0
@@ -425,7 +425,7 @@ def __write_jorek_namelist(
         "  mf        = 0\n"
         "\n"
         f"  n_boundary = {n_boundary}\n"
-        f"  R_Z_psi_bnd_file = {rz_boundary_filepath}\n"
+        f"  R_Z_psi_bnd_file = {basename(rz_boundary_filepath)}\n"
         "\n"
         f"  R_geo = {r_geo}\n"
         f"  Z_geo = {z_geo}\n"
@@ -435,9 +435,9 @@ def __write_jorek_namelist(
         f"  F0 = {F0}\n"
         "\n"
         f"  central_density = {central_density}\n"
-        f'  rho_file = "{density_filepath}"\n'
-        f'  T_file   = "{temperature_filepath}"\n'
-        f'  ffprime_file = "{ffprime_filepath}"\n'
+        f'  rho_file = "{basename(density_filepath)}"\n'
+        f'  T_file   = "{basename(temperature_filepath)}"\n'
+        f'  ffprime_file = "{basename(ffprime_filepath)}"\n'
         "\n"
         "  fix_axis_nodes = .t.\n"
         "  axis_srch_radius = 2.0\n"
