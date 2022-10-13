@@ -115,10 +115,10 @@ def __extract_per_point_profile(
     return (True, values)
 
 
-def convert_elite_to_jorek(elite_filepath: str, jorek_filepath: str) -> None:
+def __parse_elite_input(elite_filepath: str) -> Tuple[bool, Dict[str, List[float]]]:
     if not isfile(elite_filepath):
-        print(("Could not find an elite input file at:\n" f"    {elite_filepath}"))
-        return
+        print("    File does not exist!")
+        return (False, {})
 
     elite_lines = []
     with open(elite_filepath, "r") as elite_file:
@@ -126,7 +126,7 @@ def convert_elite_to_jorek(elite_filepath: str, jorek_filepath: str) -> None:
 
     if elite_lines is None or elite_lines == "":
         print(f"Elite input file at:\n    {elite_filepath}\nis empty!")
-        return
+        return (False, {})
 
     # Read number of flux surfaces and number of points on each flux surface.
     success, flux_surface_count, flux_surface_point_count = __read_flux_metadata(
@@ -135,13 +135,13 @@ def convert_elite_to_jorek(elite_filepath: str, jorek_filepath: str) -> None:
     if not success:
         print(
             (
-                "Could not read flux metadata from elite input file at:\n"
-                f"    {elite_filepath}\n"
-                "Expect to see two integers on the second line giving number of\n"
-                "flux surfaces and number of points on each flux surface\n"
-                "respectively."
+                "    Could not read flux metadata from elite input.\n"
+                "        Expect to see two integers on the second line giving number\n"
+                "        of flux surfaces and number of points on each flux surface\n"
+                "        respectively."
             )
         )
+        return (False, {})
 
     PER_FLUX_PARAMS = ["psi", "ffprime", "q", "ne", "Te", "f(psi)"]
     PER_POINT_BOUNDARY_PARAMS = ["R", "Z"]
@@ -154,12 +154,8 @@ def convert_elite_to_jorek(elite_filepath: str, jorek_filepath: str) -> None:
         )
 
         if not success:
-            print(
-                (
-                    f"Could not parse parameter, {param}, in file:\n"
-                    f"    {elite_filepath}"
-                )
-            )
+            print(f"    Could not parse parameter, {param}.")
+            return (False, {})
 
         params[param] = values
 
@@ -173,3 +169,60 @@ def convert_elite_to_jorek(elite_filepath: str, jorek_filepath: str) -> None:
             flux_surface_count,
             flux_surface_point_count,
         )
+
+        if not success:
+            print(f"    Could not parse parameter, {param}.")
+            return (False, {})
+
+        params[param] = values
+
+
+def __write_jorek_namelist(
+    jorek_filepath: str, parameters: Dict[str, List[float]]
+) -> bool:
+
+    contents = (
+        "&in1\n"
+        "\n"
+        "  restart = .f.\n"
+        "  regrid  = .f.\n"
+        "  tstep_n   = 5.\n"
+        "  nstep_n   = 0\n"
+        "\n"
+        "  freeboundary = .f.\n"
+        "  wall_resistivity_fact = 1.\n"
+        "\n"
+        "  nout = 1\n"
+        "\n"
+        "  fbnd(1)   = 2.\n"
+        "  fbnd(2:4) = 0.\n"
+        "  mf        = 0\n"
+        "\n"
+    )
+
+    with open(jorek_filepath, "w") as jorek_file:
+        jorek_file.write(contents)
+
+    return True
+
+
+def convert_elite_to_jorek(elite_filepath: str, jorek_filepath: str) -> None:
+    print(("Parsing Elite input file:\n" f"    {elite_filepath}\n"))
+
+    success, elite_params = __parse_elite_input(elite_filepath)
+    if not success:
+        print("Failed to parse the file, reason above.")
+        return
+
+    print(
+        (
+            "Succesfully parsed Elite input.\n"
+            "\nWriting JOREK namelist to:\n"
+            f"    {jorek_filepath}\n"
+        )
+    )
+
+    success = __write_jorek_namelist(jorek_filepath, elite_params)
+    if not success:
+        print("Failed to write JOREK namelist, reason above.")
+        return
