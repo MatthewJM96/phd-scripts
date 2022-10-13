@@ -1,7 +1,7 @@
 from os.path import basename, isfile
 from typing import Dict, List, Optional, Tuple
 
-from phdscripts.boundary import decomp_fourier
+from phdscripts.boundary import decomp_fourier, extrude_normal, extrude_scale
 from phdscripts.physical_constants import EV_TO_JOULES, MU_0
 
 
@@ -469,6 +469,8 @@ def __write_jorek_namelist(
 def __write_starwall_namelist(
     starwall_filepath: str,
     modes: Tuple[int, int],
+    wall_distance: float,
+    extrude_method: str,
     parameters: Dict[str, List[float]],
 ) -> bool:
     """
@@ -499,7 +501,24 @@ def __write_starwall_namelist(
     for idx in range(len(parameters["R"])):
         points.append((parameters["R"][idx], parameters["Z"][idx]))
 
-    fourier_coeffs = decomp_fourier(points, modes)
+    extruded_points = points
+    if wall_distance != 0.0:
+        if extrude_method == "scale":
+            extruded_points = extrude_scale(points, wall_distance)
+        elif extrude_method == "normal":
+            extruded_points = extrude_normal(points, wall_distance)
+        else:
+            print(
+                (
+                    f"    Wall extrusion method was not recognised: {extrude_method}.\n"
+                    "        Methods accepted are:\n"
+                    "            - scale\n"
+                    "            - normal\n"
+                )
+            )
+            return False
+
+    fourier_coeffs = decomp_fourier(extruded_points, modes)
 
     n_w_str = ""
     m_w_str = ""
@@ -552,6 +571,8 @@ def convert_elite_to_jorek(
     jorek_filepath: str,
     starwall_filepath: Optional[str] = None,
     starwall_modes: Tuple[int, int] = (-1, 1),
+    wall_distance: float = 0.0,
+    extrude_method: str = "scale",
     density_filepath: str = "density.txt",
     temperature_filepath: str = "temperature.txt",
     ffprime_filepath: str = "ffprime.txt",
@@ -590,7 +611,11 @@ def convert_elite_to_jorek(
         print("Writing STARWALL namelist.")
 
         success = __write_starwall_namelist(
-            starwall_filepath, starwall_modes, elite_params
+            starwall_filepath,
+            starwall_modes,
+            wall_distance,
+            extrude_method,
+            elite_params,
         )
 
         print("Successfully written STARWALL namelist.")
