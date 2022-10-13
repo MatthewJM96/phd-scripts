@@ -30,7 +30,7 @@ def __read_flux_metadata(lines: List[str]) -> Tuple[bool, int, int]:
 
 
 def __extract_per_flux_profile(
-    lines: List[str], param: str, flux_surface_point_count: int
+    lines: List[str], param: str, flux_surface_count: int
 ) -> Tuple[bool, List[float]]:
     """
     Extracts the named parameter from the provided Elite input lines. The assumption is
@@ -46,7 +46,7 @@ def __extract_per_flux_profile(
         # then handle ingestion.
         if found_start:
             # If we have ingested all the values, break.
-            if len(values) == flux_surface_point_count:
+            if len(values) == flux_surface_count:
                 break
             # Get values on this line.
             values_str = line.split()
@@ -62,10 +62,10 @@ def __extract_per_flux_profile(
         elif line.strip() == param:
             found_start = True
 
-    # If we don't have flux_surface_point_count number of
+    # If we don't have flux_surface_count number of
     # values, then te input file was ill-formatted, return
     # failure.
-    if len(values) != flux_surface_point_count:
+    if len(values) != flux_surface_count:
         return (False, values)
 
     return (True, values)
@@ -176,7 +176,7 @@ def __parse_elite_input(elite_filepath: str) -> Tuple[bool, Dict[str, List[float
 
     for param in PER_FLUX_PARAMS:
         success, values = __extract_per_flux_profile(
-            elite_lines, param, flux_surface_point_count
+            elite_lines, param, flux_surface_count
         )
 
         if not success:
