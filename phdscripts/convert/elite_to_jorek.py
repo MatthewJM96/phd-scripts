@@ -379,8 +379,8 @@ def __write_jorek_namelist(
         return False
 
     n_boundary = len(r_boundary)
-    r_geo = (r_boundary[0] + r_boundary[-1]) / 2.0
-    z_geo = (z_boundary[0] + z_boundary[-1]) / 2.0
+    r_geo = (min(r_boundary) + max(r_boundary)) / 2.0
+    z_geo = (min(z_boundary) + max(z_boundary)) / 2.0
 
     # Write profiles to their files.
     #   Density
