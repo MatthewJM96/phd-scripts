@@ -401,7 +401,6 @@ def __write_jorek_namelist(
 
     contents = (
         "&in1\n"
-        "\n"
         "  restart = .f.\n"
         "  regrid  = .f.\n"
         "  tstep_n   = 5.\n"
@@ -457,6 +456,7 @@ def __write_jorek_namelist(
         "\n"
         "  heatsource     = 0.d0\n"
         "  particlesource = 0.d0\n"
+        "/\n"
     )
 
     with open(jorek_filepath, "w") as jorek_file:
