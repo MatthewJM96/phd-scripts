@@ -297,7 +297,7 @@ def __temperature(
     # JOREK wants temperature normalised.
     temp_norm_factor = 2.0 * central_density * 1.0e20 * MU_0 * EV_TO_JOULES
 
-    return True, [val / temp_norm_factor for val in parameters["Te"]]
+    return True, [val * temp_norm_factor for val in parameters["Te"]]
 
 
 def __write_profile(profile: List[List[float]], filepath: str) -> bool:
