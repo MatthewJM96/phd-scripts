@@ -499,3 +499,5 @@ def convert_elite_to_jorek(
     if not success:
         print("Failed to write JOREK namelist, reason above.")
         return
+
+    print("Successfully written JOREK namelist.")
