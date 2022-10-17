@@ -404,6 +404,7 @@ def __write_jorek_namelist(
         "&in1\n"
         "  restart = .f.\n"
         "  regrid  = .f.\n"
+        "\n"
         "  tstep_n   = 5.\n"
         "  nstep_n   = 0\n"
         "\n"
