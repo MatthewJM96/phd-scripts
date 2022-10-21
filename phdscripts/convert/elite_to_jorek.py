@@ -275,6 +275,10 @@ def __density(parameters: Dict[str, List[float]]) -> Tuple[bool, float, List[flo
 
     # JOREK parameterises density as a profile normalised against on-axis density and
     # takes a central density value as on-axis density divided by 1e20.
+    # TODO(Matthew): does JOREK treat density as density of electorns and ions
+    #                collectively as it does for temperature? This seems unlikely, but
+    #                worth checking.
+    # central_density = 2.0 * parameters["ne"][0] / 1.0e20
     central_density = parameters["ne"][0] / 1.0e20
 
     return (
