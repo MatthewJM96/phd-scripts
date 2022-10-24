@@ -145,7 +145,7 @@ def write_jorek_files(
         "/\n"
     )
 
-    with open(jorek_filepath, "w") as jorek_file:
+    with open(join(target_directory, jorek_filepath), "w") as jorek_file:
         jorek_file.write(contents)
 
     return True
