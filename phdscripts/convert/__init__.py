@@ -1,4 +1,4 @@
-from elite_to_jorek import (
+from .elite_to_jorek import (
     convert_elite_to_jorek,
     convert_helena_elite_to_jorek,
     convert_scene_elite_to_jorek,
