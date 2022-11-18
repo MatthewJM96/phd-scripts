@@ -1,14 +1,21 @@
 from .extrude_normal import extrude_normal
 from .extrude_scale import extrude_scale
-from .fourier_decomp import create_fourier_boundary, decomp_fourier
+from .fourier_decomp import (
+    create_boundary_from_fourier_1d,
+    create_boundary_from_fourier_2d,
+    decomp_fourier_1d,
+    decomp_fourier_2d,
+)
 from .freidberg_cerfon import create_freidberg_cerfon_boundary
 from .print import print_starwall_wall_file
 
 __all__ = [
     "extrude_normal",
     "extrude_scale",
-    "decomp_fourier",
-    "create_fourier_boundary",
+    "decomp_fourier_1d",
+    "decomp_fourier_2d",
+    "create_boundary_from_fourier_1d",
+    "create_boundary_from_fourier_2d",
     "create_freidberg_cerfon_boundary",
     "print_starwall_wall_file",
 ]
