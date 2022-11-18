@@ -1,7 +1,7 @@
 from os.path import join
 from typing import Dict, List, Tuple
 
-from phdscripts.boundary import decomp_fourier, extrude_normal, extrude_scale
+from phdscripts.boundary import decomp_fourier_2d, extrude_normal, extrude_scale
 
 
 def write_starwall_files(
@@ -57,7 +57,7 @@ def write_starwall_files(
             )
             return False
 
-    fourier_coeffs = decomp_fourier(extruded_points, modes)
+    fourier_coeffs = decomp_fourier_2d(extruded_points, modes)
 
     n_w_str = ""
     m_w_str = ""
