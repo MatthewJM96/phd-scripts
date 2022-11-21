@@ -1,13 +1,16 @@
-from typing import Tuple
+from typing import List, Tuple
 
 
 def lerp(
-    lower: Tuple[float, float], upper: Tuple[float, float], target_x: float
+    points: List[Tuple[float, float]], lower_idx: int, upper_idx: int, target_x: float
 ) -> float:
     """
     Calculates the linearly interpolated Y value for a given X target lying between a
     lower and upper bound.
     """
+
+    lower = points[lower_idx]
+    upper = points[upper_idx]
 
     grad = (upper[1] - lower[1]) / (upper[0] - lower[0])
 

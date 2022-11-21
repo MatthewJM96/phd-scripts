@@ -6,7 +6,7 @@ from phdscripts.math import lerp
 def convert_profile_points(
     profile: List[Tuple[float, float]],
     target_xs: List[float],
-    interp: Callable[[Tuple[float, float], Tuple[float, float], float], float] = lerp,
+    interp: Callable[[List[Tuple[float, float]], int, int, float], float] = lerp,
 ) -> List[Tuple[float, float]]:
     new_profile = []
 
@@ -15,15 +15,15 @@ def convert_profile_points(
         upper = None
         found_exact = False
 
-        for entry in profile:
-            if entry[0] == target_x:
-                new_profile.append(entry)
+        for idx in range(len(profile)):
+            if profile[idx][0] == target_x:
+                new_profile.append(profile[idx])
                 found_exact = True
                 break
-            if entry[0] < target_x:
-                lower = entry
+            if profile[idx][0] < target_x:
+                lower = idx
             else:
-                upper = entry
+                upper = idx
                 break
 
         if found_exact:
@@ -33,6 +33,6 @@ def convert_profile_points(
             print(f"Target x, {target_x}, could not be interpolated.")
             continue
 
-        new_profile.append((target_x, interp(lower, upper, target_x)))
+        new_profile.append((target_x, interp(profile, lower, upper, target_x)))
 
     return new_profile
