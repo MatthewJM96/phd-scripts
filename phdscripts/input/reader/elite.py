@@ -154,7 +154,7 @@ def extract_from_elite_input(
     with open(elite_filepath, "r") as elite_file:
         elite_lines = elite_file.readlines()
 
-    if elite_lines is None or elite_lines == "":
+    if elite_lines is None or (len(elite_lines) == 1 and elite_lines[0] == ""):
         print(f"Elite input file at:\n    {elite_filepath}\nis empty!")
         return False, {}
 
