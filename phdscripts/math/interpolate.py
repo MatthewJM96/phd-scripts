@@ -1,7 +1,7 @@
 from typing import List, Tuple
 
 
-def lerp(
+def linear_interpolate(
     points: List[Tuple[float, float]], lower_idx: int, upper_idx: int, target_x: float
 ) -> float:
     """

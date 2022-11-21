@@ -1,12 +1,14 @@
 from typing import Callable, List, Tuple
 
-from phdscripts.math import lerp
+from phdscripts.math import linear_interpolate
 
 
 def convert_profile_points(
     profile: List[Tuple[float, float]],
     target_xs: List[float],
-    interp: Callable[[List[Tuple[float, float]], int, int, float], float] = lerp,
+    interp: Callable[
+        [List[Tuple[float, float]], int, int, float], float
+    ] = linear_interpolate,
 ) -> List[Tuple[float, float]]:
     new_profile = []
 

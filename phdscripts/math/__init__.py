@@ -1,3 +1,3 @@
-from lerp import lerp
+from .interpolate import linear_interpolate
 
-__all__ = ["lerp"]
+__all__ = ["linear_interpolate"]
