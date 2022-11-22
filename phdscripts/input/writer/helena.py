@@ -1,53 +1,58 @@
 from os.path import join
 from typing import Dict, List
 
+DEFAULT_HELENA_PARAMETERS = {
+    "MHARM": 128,
+    "ISHAPE": 1,
+    "IMESH": 1,
+    "IAS": 0,
+    "IGAM": 7,
+    "IPAI": 7,
+    "IDETE": 10,
+    "NR": 101,
+    "NP": 125,
+    "NRMAP": 201,
+    "NPMAP": 257,
+    "NCHI": 257,
+    "NITER": 500,
+    "AMIX": 0.9,
+    "NPR1": 1,
+    "NPR2": 1,
+    "NPL1": 1,
+}
 
-def write_jorek_files(
+REQUIRED_HELENA_PARAMETERS = set(
+    {
+        #        "temperature",
+        #        "denisty",
+        "minor_radius",
+        "major_radius",
+        "density_on_axis",
+    }
+)
+
+DEFAULT_HELENA_PARAMETERS_ISHAPE_1 = {"ELLIP": 0.0, "TRIA": 0.0, "QUAD": 0.0}
+
+REQUIRED_HELENA_PARAMETERS_IPAI_7 = set({"pressure"})
+
+DEFAULT_HELENA_PARAMETERS_IPAI_11 = {"EPI": 1.0, "FPI": 1.0}
+
+REQUIRED_HELENA_PARAMETERS_IPAI_11 = set({"pressure"})
+
+REQUIRED_HELENA_PARAMETERS_IGAM_7 = set({"ffprime"})
+
+
+def write_helena_input(
     parameters: Dict[str, List[float]],
     target_directory: str,
     helena_filepath: str = "fort.10",
+    tagline: str = None,
 ) -> bool:
     """
-    Writes a JOREK namelist file based on the provided values for the various parameters
-    obtained from an Elite input file. Of course no requirement is placed on these
-    parameters of actually coming from an Elite input file, but they must follow Elite
-    conventions and normalisations.
+    Writes a HELENA namelist file based on the provided parameters.
     """
 
-    REQUIRED_PARAMETERS = set(
-        {
-            "pressure",
-            "ffprime",
-            "n",
-            "T",
-            "ellipticity",
-            "triangularity",
-            "quadrangularity",
-            "mharm",
-            "ishape",
-            "imesh",
-            "ias",
-            "igam",
-            "ipai",
-            "idete",
-            "eps",
-            "b",
-            "xiab",
-            "rvac",
-            "bvac",
-            "zn0",
-            "nr",
-            "np",
-            "nrmap",
-            "npmap",
-            "nchi",
-            "niter",
-            "amix",
-            "npr1",
-            "npr2",
-            "npl1",
-        }
-    )
+    REQUIRED_PARAMETERS = set({"b", "xiab", "rvac", "bvac", "zn0"})
     keys = set(parameters.keys())
     if REQUIRED_PARAMETERS > keys:
         print(
@@ -62,64 +67,72 @@ def write_jorek_files(
 
     if (
         (len(parameters["pressure"]) != len(parameters["ffprime"]))
-        or (len(parameters["pressure"]) != len(parameters["n"]))
-        or (len(parameters["pressure"]) != len(parameters["T"]))
+        or (len(parameters["pressure"]) != len(parameters["density"]))
+        or (len(parameters["pressure"]) != len(parameters["temperature"]))
     ):
         print("Profile parameters are not all the same length.")
         return False
 
+    # Normalise profiles.
+    # normalise_profile(parameters["pressure"])
+    # normalise_profile(parameters["ffprime"])
+
+    num_profile_points = len(parameters["pressure"])
     profile = ""
-    for idx in range(len(parameters["pressure"])):
-        profile += f"DPR({idx:3}) = {parameters['pressure'][idx]:7.2f}, "
-        profile += f"DF2({idx:3}) = {2 * parameters['ffprime'][idx]:7.2f}, "
-        profile += f"TEPROF({idx:3}) = {parameters['T'][idx]:7.2f}, "
-        profile += f"TIPROF({idx:3}) = {parameters['T'][idx]:7.2f}, "
-        profile += f"NEPROF({idx:3}) = {parameters['n'][idx]:7.2f}, "
-        profile += f"NIPROF({idx:3}) = {parameters['n'][idx]:7.2f}, \n"
+    for idx in range(num_profile_points):
+        profile += f"  DPR({idx:3}) = {parameters['pressure'][idx]:7.2f}, "
+        profile += f"DF2({idx:3}) = {parameters['ffprime'][idx]:7.2f},\n"
+        # profile += f"TEPROF({idx:3}) = {parameters['temperature'][idx]:7.2f}, "
+        # profile += f"TIPROF({idx:3}) = {parameters['temperature'][idx]:7.2f}, "
+        # profile += f"NEPROF({idx:3}) = {parameters['density'][idx]:7.2f}, "
+        # profile += f"NIPROF({idx:3}) = {parameters['density'][idx]:7.2f},\n"
+
+    eps = parameters["minor_radius"] / parameters["major_radius"]
+    # TODO(Matthew): Needs pprime
+    gs_ratio = 0.0
 
     contents = (
         "Equilbirum Data for HELENA\n"
-        "PPF SCENE\n"
-        "\n"
+        # f"{f'  {tagline}\n' if tagline else ''}\n"
         "&SHAPE\n"
-        f"  ELLIP  = {parameters['ellipticity']},\n"
-        f"  TRIA   = {parameters['triangularity']},\n"
-        f"  QUAD   = {parameters['quadrangularity']},\n"
-        f"  MHARM  = {parameters['mharm']},\n"
-        f"  ISHAPE = {parameters['ishape']},\n"
-        f"  IMESH  = {parameters['imesh']},\n"
-        f"  IAS    = {parameters['ias']},\n"
+        f"  ELLIP  = {parameters['ELLIP']},\n"
+        f"  TRIA   = {parameters['TRIA']},\n"
+        f"  QUAD   = {parameters['QUAD']},\n"
+        f"  MHARM  = {parameters['MHARM']},\n"
+        f"  ISHAPE = {parameters['ISHAPE']},\n"
+        f"  IMESH  = {parameters['IMESH']},\n"
+        f"  IAS    = {parameters['IAS']},\n"
         "&END\n"
         "&PROFILE\n"
-        f"  IGAM = {parameters['igam']}\n"
-        f"  IPAI = {parameters['ipai']}\n"
-        f"  NPTS = {parameters['num_points']}\n"
+        f"  IGAM = {parameters['IGAM']}\n"
+        f"  IPAI = {parameters['IPAI']}\n"
+        f"  NPTS = {num_profile_points}\n"
         f"{profile}"
         "&END\n"
         "&PHYS\n"
-        f"  IDETE = {parameters['idete']}\n"
-        f"  EPS   = {parameters['eps']}\n"
-        f"  B     = {parameters['b0']}\n"
+        f"  IDETE = {parameters['IDETE']}\n"
+        f"  EPS   = {eps}\n"
+        f"  B     = {gs_ratio}\n"
         f"  XIAB  = {parameters['xiab']}\n"
-        f"  RVAC  = {parameters['rvac']}\n"
+        f"  RVAC  = {parameters['major_radius']}\n"
         f"  BVAC  = {parameters['bvac']}\n"
-        f"  ZN0   = {parameters['zn0']}\n"
+        f"  ZN0   = {parameters['density_on_axis']}\n"
         "&END\n"
         "&NUM\n"
-        f"  NR    = {parameters['nr']}\n"
-        f"  NP    = {parameters['np']}\n"
-        f"  NRMAP = {parameters['nrmap']}\n"
-        f"  NPMAP = {parameters['npmap']}\n"
-        f"  NCHI  = {parameters['nchi']}\n"
-        f"  NITER = {parameters['niter']}\n"
-        f"  AMIX  = {parameters['amix']}\n"
+        f"  NR    = {parameters['NR']}\n"
+        f"  NP    = {parameters['NP']}\n"
+        f"  NRMAP = {parameters['NRMAP']}\n"
+        f"  NPMAP = {parameters['NPMAP']}\n"
+        f"  NCHI  = {parameters['NCHI']}\n"
+        f"  NITER = {parameters['NITER']}\n"
+        f"  AMIX  = {parameters['AMIX']}\n"
         "&END\n"
         "&PRI\n"
-        f"  NPR1 = {parameters['npr1']}\n"
-        f"  NPR2 = {parameters['npr2']}\n"
+        f"  NPR1 = {parameters['NPR1']}\n"
+        f"  NPR2 = {parameters['NPR2']}\n"
         "&END\n"
         "&PLOT\n"
-        f"  NPL1 = {parameters['npl1']}\n"
+        f"  NPL1 = {parameters['NPL1']}\n"
         "&END\n"
         "&BALL\n"
         # Empty
