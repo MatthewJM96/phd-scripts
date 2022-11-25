@@ -37,7 +37,8 @@ def convert_profile_points(
                 new_profile.append((target_x, extrap(profile, target_x)))
             else:
                 print(f"Target x, {target_x}, could not be interpolated.")
-                continue
+
+            continue
 
         new_profile.append((target_x, interp(profile, lower, upper, target_x)))
 
