@@ -45,16 +45,16 @@ REQUIRED_HELENA_PARAMETERS_IPAI_11 = set({"pprime"})
 REQUIRED_HELENA_PARAMETERS_IGAM_7 = set({"ffprime"})
 
 
-def __validate_helena_parameters(parameters: Dict[str, List[float]]) -> bool:
+def __apply_defaults_and_validate(parameters: Dict[str, List[float]]) -> bool:
     param_keys = set(parameters.keys())
 
     if not validate_required_keys(REQUIRED_HELENA_PARAMETERS, param_keys, 1):
         return False
 
-    parameters = {**DEFAULT_HELENA_PARAMETERS, **parameters}
+    parameters.update({**DEFAULT_HELENA_PARAMETERS, **parameters})
 
     if parameters["ISHAPE"] == 1:
-        parameters = {**DEFAULT_HELENA_PARAMETERS_ISHAPE_1, **parameters}
+        parameters.update({**DEFAULT_HELENA_PARAMETERS_ISHAPE_1, **parameters})
 
     if parameters["IPAI"] == 7:
         if not validate_required_keys(REQUIRED_HELENA_PARAMETERS_IPAI_7, param_keys, 1):
@@ -64,7 +64,7 @@ def __validate_helena_parameters(parameters: Dict[str, List[float]]) -> bool:
             REQUIRED_HELENA_PARAMETERS_IPAI_11, param_keys, 1
         ):
             return False
-        parameters = {**DEFAULT_HELENA_PARAMETERS_IPAI_11, **parameters}
+        parameters.update({**DEFAULT_HELENA_PARAMETERS_IPAI_11, **parameters})
 
     if parameters["IGAM"] == 7:
         if not validate_required_keys(REQUIRED_HELENA_PARAMETERS_IGAM_7, param_keys, 1):
@@ -91,7 +91,7 @@ def write_helena_input(
     Writes a HELENA namelist file based on the provided parameters.
     """
 
-    if not __validate_helena_parameters(parameters):
+    if not __apply_defaults_and_validate(parameters):
         return False
 
     aspect_ratio = parameters["minor_radius"] / parameters["major_radius"]
