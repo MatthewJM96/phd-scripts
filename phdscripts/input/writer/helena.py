@@ -78,6 +78,8 @@ def __validate_helena_parameters(parameters: Dict[str, List[float]]) -> bool:
         print("    Profile parameters are not all the same length.")
         return False
 
+    return True
+
 
 def write_helena_input(
     parameters: Dict[str, List[float]],
