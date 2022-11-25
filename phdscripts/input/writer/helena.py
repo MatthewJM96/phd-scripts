@@ -1,6 +1,7 @@
 from os.path import join
 from typing import Dict, List
 
+from phdscripts.physical_constants import MU_0
 from phdscripts.validate import validate_required_keys
 
 DEFAULT_HELENA_PARAMETERS = {
@@ -92,10 +93,10 @@ def write_helena_input(
         return False
 
     # Normalise profiles.
-    # normalise_profile(parameters["pressure"])
+    # normalise_profile(parameters["pprime"])
     # normalise_profile(parameters["ffprime"])
 
-    num_profile_points = len(parameters["pressure"])
+    num_profile_points = len(parameters["pprime"])
     profile = ""
     for idx in range(num_profile_points):
         profile += f"  DPR({idx:3}) = {parameters['pressure'][idx]:7.2f}, "
@@ -105,9 +106,18 @@ def write_helena_input(
         # profile += f"NEPROF({idx:3}) = {parameters['density'][idx]:7.2f}, "
         # profile += f"NIPROF({idx:3}) = {parameters['density'][idx]:7.2f},\n"
 
-    eps = parameters["minor_radius"] / parameters["major_radius"]
-    # TODO(Matthew): Needs pprime
-    gs_ratio = 0.0
+    aspect_ratio = parameters["minor_radius"] / parameters["major_radius"]
+    gs_ratio = (
+        MU_0
+        * parameters["pprime"][0]
+        * (parameters["major_radius"] ** 2.0)
+        / parameters["ffprime"][0]
+    )
+    normalised_total_current = (
+        MU_0
+        * abs(parameters["current"])
+        / (parameters["minor_radius"] * parameters["magnetic_field_on_geometric_axis"])
+    )
 
     contents = (
         "Equilbirum Data for HELENA\n"
@@ -129,12 +139,12 @@ def write_helena_input(
         "&END\n"
         "&PHYS\n"
         f"  IDETE = {parameters['IDETE']}\n"
-        f"  EPS   = {eps}\n"
+        f"  EPS   = {aspect_ratio}\n"
         f"  B     = {gs_ratio}\n"
-        f"  XIAB  = {parameters['xiab']}\n"
+        f"  XIAB  = {normalised_total_current}\n"
         f"  RVAC  = {parameters['major_radius']}\n"
-        f"  BVAC  = {parameters['bvac']}\n"
-        f"  ZN0   = {parameters['density_on_axis']}\n"
+        f"  BVAC  = {parameters['magnetic_field_on_geometric_axis']}\n"
+        f"  ZN0   = {parameters['density_on_geometric_axis']}\n"
         "&END\n"
         "&NUM\n"
         f"  NR    = {parameters['NR']}\n"
