@@ -1,6 +1,8 @@
 from os.path import join
 from typing import Dict, List
 
+from phdscripts.validate import validate_required_keys
+
 DEFAULT_HELENA_PARAMETERS = {
     "MHARM": 128,
     "ISHAPE": 1,
@@ -33,13 +35,47 @@ REQUIRED_HELENA_PARAMETERS = set(
 
 DEFAULT_HELENA_PARAMETERS_ISHAPE_1 = {"ELLIP": 0.0, "TRIA": 0.0, "QUAD": 0.0}
 
-REQUIRED_HELENA_PARAMETERS_IPAI_7 = set({"pressure"})
+REQUIRED_HELENA_PARAMETERS_IPAI_7 = set({"pprime"})
 
 DEFAULT_HELENA_PARAMETERS_IPAI_11 = {"EPI": 1.0, "FPI": 1.0}
 
-REQUIRED_HELENA_PARAMETERS_IPAI_11 = set({"pressure"})
+REQUIRED_HELENA_PARAMETERS_IPAI_11 = set({"pprime"})
 
 REQUIRED_HELENA_PARAMETERS_IGAM_7 = set({"ffprime"})
+
+
+def __validate_helena_parameters(parameters: Dict[str, List[float]]) -> bool:
+    param_keys = set(parameters.keys())
+
+    if not validate_required_keys(REQUIRED_HELENA_PARAMETERS, param_keys, 1):
+        return False
+
+    parameters = {**DEFAULT_HELENA_PARAMETERS, **parameters}
+
+    if parameters["ISHAPE"] == 1:
+        parameters = {**DEFAULT_HELENA_PARAMETERS_ISHAPE_1, **parameters}
+
+    if parameters["IPAI"] == 7:
+        if not validate_required_keys(REQUIRED_HELENA_PARAMETERS_IPAI_7, param_keys, 1):
+            return False
+    elif parameters["IPAI"] == 11:
+        if not validate_required_keys(
+            REQUIRED_HELENA_PARAMETERS_IPAI_11, param_keys, 1
+        ):
+            return False
+        parameters = {**DEFAULT_HELENA_PARAMETERS_IPAI_11, **parameters}
+
+    if parameters["IGAM"] == 7:
+        if not validate_required_keys(REQUIRED_HELENA_PARAMETERS_IGAM_7, param_keys, 1):
+            return False
+
+    if (
+        (len(parameters["pprime"]) != len(parameters["ffprime"]))
+        or (len(parameters["pprime"]) != len(parameters["density"]))
+        or (len(parameters["pprime"]) != len(parameters["temperature"]))
+    ):
+        print("    Profile parameters are not all the same length.")
+        return False
 
 
 def write_helena_input(
@@ -52,25 +88,7 @@ def write_helena_input(
     Writes a HELENA namelist file based on the provided parameters.
     """
 
-    REQUIRED_PARAMETERS = set({"b", "xiab", "rvac", "bvac", "zn0"})
-    keys = set(parameters.keys())
-    if REQUIRED_PARAMETERS > keys:
-        print(
-            (
-                "    Parameters provided do not at least include the required"
-                "parameters.\n"
-                f"        Parameters provided were: {keys}\n"
-                f"        Parameters required are: {REQUIRED_PARAMETERS}\n"
-            )
-        )
-        return False
-
-    if (
-        (len(parameters["pressure"]) != len(parameters["ffprime"]))
-        or (len(parameters["pressure"]) != len(parameters["density"]))
-        or (len(parameters["pressure"]) != len(parameters["temperature"]))
-    ):
-        print("Profile parameters are not all the same length.")
+    if not __validate_helena_parameters(parameters):
         return False
 
     # Normalise profiles.
