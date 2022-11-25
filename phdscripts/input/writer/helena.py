@@ -115,8 +115,8 @@ def write_helena_input(
     num_profile_points = len(parameters["pprime"])
     profile = ""
     for idx in range(num_profile_points):
-        profile += f"  DPR({idx:3}) = {parameters['pprime'][idx]:10.6f}, "
-        profile += f"DF2({idx:3}) = {normalised_ffprime[idx]:10.6f},\n"
+        profile += f"  DPR({idx+1:3}) = {parameters['pprime'][idx]:10.6f}, "
+        profile += f"DF2({idx+1:3}) = {normalised_ffprime[idx]:10.6f},\n"
         # profile += f"TEPROF({idx:3}) = {parameters['temperature'][idx]:7.2f}, "
         # profile += f"TIPROF({idx:3}) = {parameters['temperature'][idx]:7.2f}, "
         # profile += f"NEPROF({idx:3}) = {parameters['density'][idx]:7.2f}, "
