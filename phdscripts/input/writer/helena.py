@@ -94,20 +94,6 @@ def write_helena_input(
     if not __validate_helena_parameters(parameters):
         return False
 
-    # Normalise profiles.
-    # normalise_profile(parameters["pprime"])
-    # normalise_profile(parameters["ffprime"])
-
-    num_profile_points = len(parameters["pprime"])
-    profile = ""
-    for idx in range(num_profile_points):
-        profile += f"  DPR({idx:3}) = {parameters['pressure'][idx]:7.2f}, "
-        profile += f"DF2({idx:3}) = {parameters['ffprime'][idx]:7.2f},\n"
-        # profile += f"TEPROF({idx:3}) = {parameters['temperature'][idx]:7.2f}, "
-        # profile += f"TIPROF({idx:3}) = {parameters['temperature'][idx]:7.2f}, "
-        # profile += f"NEPROF({idx:3}) = {parameters['density'][idx]:7.2f}, "
-        # profile += f"NIPROF({idx:3}) = {parameters['density'][idx]:7.2f},\n"
-
     aspect_ratio = parameters["minor_radius"] / parameters["major_radius"]
     gs_ratio = (
         MU_0
@@ -120,6 +106,22 @@ def write_helena_input(
         * abs(parameters["current"])
         / (parameters["minor_radius"] * parameters["magnetic_field_on_geometric_axis"])
     )
+
+    # Normalise profiles.
+    # normalise_profile(parameters["pprime"])
+    # normalise_profile(parameters["ffprime"])
+
+    normalised_ffprime = [x / parameters["ffprime"][0] for x in parameters["ffprime"]]
+
+    num_profile_points = len(parameters["pprime"])
+    profile = ""
+    for idx in range(num_profile_points):
+        profile += f"  DPR({idx:3}) = {parameters['pprime'][idx]:10.6f}, "
+        profile += f"DF2({idx:3}) = {normalised_ffprime[idx]:10.6f},\n"
+        # profile += f"TEPROF({idx:3}) = {parameters['temperature'][idx]:7.2f}, "
+        # profile += f"TIPROF({idx:3}) = {parameters['temperature'][idx]:7.2f}, "
+        # profile += f"NEPROF({idx:3}) = {parameters['density'][idx]:7.2f}, "
+        # profile += f"NIPROF({idx:3}) = {parameters['density'][idx]:7.2f},\n"
 
     tagline_formatted = "\n"
     if tagline:
