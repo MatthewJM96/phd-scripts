@@ -72,8 +72,14 @@ def __apply_defaults_and_validate(parameters: Dict[str, List[float]]) -> bool:
 
     if (
         (len(parameters["pprime"]) != len(parameters["ffprime"]))
-        or (len(parameters["pprime"]) != len(parameters["density"]))
-        or (len(parameters["pprime"]) != len(parameters["temperature"]))
+        or (
+            "density" in parameters.keys()
+            and len(parameters["pprime"]) != len(parameters["density"])
+        )
+        or (
+            "temperature" in parameters.keys()
+            and len(parameters["pprime"]) != len(parameters["temperature"])
+        )
     ):
         print("    Profile parameters are not all the same length.")
         return False
