@@ -122,11 +122,14 @@ def write_helena_input(
     profile = ""
     for idx in range(num_profile_points):
         profile += f"  DPR({idx+1:3}) = {parameters['pprime'][idx]:10.6f}, "
-        profile += f"DF2({idx+1:3}) = {normalised_ffprime[idx]:10.6f},\n"
-        # profile += f"TEPROF({idx:3}) = {parameters['temperature'][idx]:7.2f}, "
-        # profile += f"TIPROF({idx:3}) = {parameters['temperature'][idx]:7.2f}, "
-        # profile += f"NEPROF({idx:3}) = {parameters['density'][idx]:7.2f}, "
-        # profile += f"NIPROF({idx:3}) = {parameters['density'][idx]:7.2f},\n"
+        profile += f"DF2({idx+1:3}) = {normalised_ffprime[idx]:10.6f},"
+        if "temperature" in parameters.keys():
+            profile += f"TEPROF({idx+1:3}) = {parameters['temperature'][idx]:10.6f}, "
+            profile += f"TIPROF({idx+1:3}) = {parameters['temperature'][idx]:10.6f}, "
+        if "density" in parameters.keys():
+            profile += f"NEPROF({idx+1:3}) = {parameters['density'][idx]:10.6f}, "
+            profile += f"NIPROF({idx+1:3}) = {parameters['density'][idx]:10.6f},"
+        profile += "\n"
 
     tagline_formatted = "\n"
     if tagline:
