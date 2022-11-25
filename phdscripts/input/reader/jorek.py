@@ -9,6 +9,34 @@ EXPECTED_INPUT_PROFILE_HEADER = (
 )
 
 
+def read_input_profile(filepath: str) -> List[Tuple[float, float]]:
+    """
+    Extracts the named inpout profiles used by JOREK in a run.
+    """
+
+    if not isfile(filepath):
+        print(f"JOREK input profile does not exist:\n    {filepath}")
+        return False, {}
+
+    lines = []
+    with open(filepath, "r") as input_profile_file:
+        lines = input_profile_file.readlines()
+
+    if lines is None or (len(lines) == 1 and lines[0] == ""):
+        print(f"JOREK input profile file at:\n    {filepath}\nis empty!")
+        return False, {}
+
+    profile = []
+    for line in lines:
+        values = line.strip().split()
+        try:
+            profile.append((float(values[0]), float(values[1])))
+        except ValueError:
+            return []
+
+    return profile
+
+
 def __decompose_input_profiles(
     lines: List[str],
 ) -> Dict[str, Union[float, List[Tuple[float, float]]]]:
@@ -54,7 +82,7 @@ def read_input_profiles(
     """
 
     if not isfile(filepath):
-        print(f"JOREK input profile does not exist:\n    {filepath}")
+        print(f"JOREK input profiles file does not exist:\n    {filepath}")
         return False, {}
 
     lines = []
@@ -62,7 +90,7 @@ def read_input_profiles(
         lines = input_profiles_file.readlines()
 
     if lines is None or (len(lines) == 1 and lines[0] == ""):
-        print(f"JOREK input profile file at:\n    {filepath}\nis empty!")
+        print(f"JOREK input profiles file at:\n    {filepath}\nis empty!")
         return False, {}
 
     if lines[0].strip() != EXPECTED_INPUT_PROFILE_HEADER:
