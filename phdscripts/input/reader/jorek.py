@@ -1,6 +1,8 @@
 from os.path import isfile
 from typing import Callable, Dict, List, Tuple, Union
 
+from f90nml import read as read_namelist
+
 EXPECTED_INPUT_PROFILE_HEADER = (
     '%"psin"       "FF\'"    "dFF\'/dpsin"    "rho"    "drho/dpsin"   "T"'
     '      "dT/dpsin"    "S_rho"     "S_T"        "D_perp"    "ZK_perp"'
@@ -241,3 +243,10 @@ def read_equilibrium_file(
         return {}
 
     return extracted_params
+
+
+def read_jorek_namelist(filepath: str) -> Dict:
+    try:
+        return read_namelist(filepath)["in1"]
+    except Exception:
+        return {}
