@@ -112,10 +112,7 @@ def write_helena_input(
         / (parameters["minor_radius"] * parameters["magnetic_field_on_geometric_axis"])
     )
 
-    # Normalise profiles.
-    # normalise_profile(parameters["pprime"])
-    # normalise_profile(parameters["ffprime"])
-
+    # Normalise FF'
     normalised_ffprime = [x / parameters["ffprime"][0] for x in parameters["ffprime"]]
 
     num_profile_points = len(parameters["pprime"])
