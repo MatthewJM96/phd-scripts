@@ -9,7 +9,7 @@ EXPECTED_INPUT_PROFILE_HEADER = (
 )
 
 
-def read_input_profile(filepath: str) -> List[Tuple[float, float]]:
+def read_jorek_input_profile(filepath: str) -> List[Tuple[float, float]]:
     """
     Extracts the named inpout profiles used by JOREK in a run.
     """
@@ -73,7 +73,7 @@ def __truncate_profiles_to_psi(
             profile.pop()
 
 
-def read_input_profiles(
+def read_jorek_input_profiles(
     filepath: str,
 ) -> Dict[str, Union[float, List[Tuple[float, float]]]]:
     """
@@ -237,7 +237,7 @@ def __extract_equilibrium_profiles(
     return True
 
 
-def read_equilibrium_file(
+def read_jorek_equilibrium_file(
     filepath: str,
 ) -> Dict[str, Union[float, List[Tuple[float, float]]]]:
     """
