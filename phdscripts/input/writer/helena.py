@@ -119,9 +119,13 @@ def write_helena_input(
         / (parameters["minor_radius"] * parameters["magnetic_field_on_geometric_axis"])
     )
 
+    tagline_formatted = "\n"
+    if tagline:
+        tagline_formatted = f"  {tagline}\n\n"
+
     contents = (
         "Equilbirum Data for HELENA\n"
-        # f"{f'  {tagline}\n' if tagline else ''}\n"
+        f"{tagline_formatted}"
         "&SHAPE\n"
         f"  ELLIP  = {parameters['ELLIP']},\n"
         f"  TRIA   = {parameters['TRIA']},\n"
