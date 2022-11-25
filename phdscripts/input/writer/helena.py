@@ -96,8 +96,7 @@ def write_helena_input(
 
     aspect_ratio = parameters["minor_radius"] / parameters["major_radius"]
     gs_ratio = (
-        MU_0
-        * parameters["pprime"][0]
+        parameters["pprime"][0]
         * (parameters["major_radius"] ** 2.0)
         / parameters["ffprime"][0]
     )
