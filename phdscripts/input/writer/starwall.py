@@ -2,6 +2,9 @@ from os.path import join
 from typing import Dict, List, Tuple
 
 from phdscripts.boundary import decomp_fourier_2d, extrude_normal, extrude_scale
+from phdscripts.validate import validate_required_keys
+
+REQUIRED_PARAMETERS = set({"R", "Z"})
 
 
 def write_starwall_files(
@@ -19,17 +22,7 @@ def write_starwall_files(
     Elite conventions and normalisations.
     """
 
-    REQUIRED_PARAMETERS = set({"R", "Z"})
-    keys = set(parameters.keys())
-    if REQUIRED_PARAMETERS > keys:
-        print(
-            (
-                "    Parameters provided do not at least include the required"
-                "parameters.\n"
-                f"        Parameters provided were: {keys}\n"
-                f"        Parameters required are: {REQUIRED_PARAMETERS}\n"
-            )
-        )
+    if validate_required_keys(REQUIRED_PARAMETERS, set(parameters.keys()), 1):
         return False
 
     if len(parameters["R"]) != len(parameters["Z"]):

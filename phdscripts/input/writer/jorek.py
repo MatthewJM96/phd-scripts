@@ -1,6 +1,12 @@
 from os.path import join
 from typing import Dict, List
 
+from phdscripts.validate import validate_required_keys
+
+REQUIRED_PARAMETERS = set(
+    {"psi", "ffprime", "q", "n", "T", "f", "R", "Z", "central_density"}
+)
+
 
 def __write_profile(profile: List[List[float]], filepath: str) -> bool:
     for idx in range(1, len(profile)):
@@ -32,19 +38,7 @@ def write_jorek_files(
     conventions and normalisations.
     """
 
-    REQUIRED_PARAMETERS = set(
-        {"psi", "ffprime", "q", "n", "T", "f", "R", "Z", "central_density"}
-    )
-    keys = set(parameters.keys())
-    if REQUIRED_PARAMETERS > keys:
-        print(
-            (
-                "    Parameters provided do not at least include the required"
-                "parameters.\n"
-                f"        Parameters provided were: {keys}\n"
-                f"        Parameters required are: {REQUIRED_PARAMETERS}\n"
-            )
-        )
+    if validate_required_keys(REQUIRED_PARAMETERS, set(parameters.keys()), 1):
         return False
 
     psi = parameters["psi"]
