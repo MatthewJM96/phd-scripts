@@ -101,14 +101,14 @@ def write_helena_input(
         return False
 
     aspect_ratio = parameters["minor_radius"] / parameters["major_radius"]
-    gs_ratio = (
+    gs_ratio = abs(
         parameters["pprime"][0]
         * (parameters["major_radius"] ** 2.0)
         / parameters["ffprime"][0]
     )
-    normalised_total_current = (
+    normalised_total_current = abs(
         MU_0
-        * abs(parameters["current"])
+        * parameters["current"]
         / (parameters["minor_radius"] * parameters["magnetic_field_on_geometric_axis"])
     )
 
