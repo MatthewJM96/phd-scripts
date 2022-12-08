@@ -6,7 +6,7 @@ from .fourier_decomp import (
     decomp_fourier_1d,
     decomp_fourier_2d,
 )
-from .freidberg_cerfon import create_freidberg_cerfon_boundary
+from .miller import create_miller_boundary
 from .print import print_starwall_wall_file
 
 __all__ = [
@@ -16,6 +16,6 @@ __all__ = [
     "decomp_fourier_2d",
     "create_boundary_from_fourier_1d",
     "create_boundary_from_fourier_2d",
-    "create_freidberg_cerfon_boundary",
+    "create_miller_boundary",
     "print_starwall_wall_file",
 ]
