@@ -22,7 +22,7 @@ def write_starwall_files(
     Elite conventions and normalisations.
     """
 
-    if validate_required_keys(REQUIRED_PARAMETERS, set(parameters.keys()), 1):
+    if not validate_required_keys(REQUIRED_PARAMETERS, set(parameters.keys()), 1):
         return False
 
     if len(parameters["R"]) != len(parameters["Z"]):
