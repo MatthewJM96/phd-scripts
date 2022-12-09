@@ -38,7 +38,7 @@ def write_jorek_files(
     conventions and normalisations.
     """
 
-    if validate_required_keys(REQUIRED_PARAMETERS, set(parameters.keys()), 1):
+    if not validate_required_keys(REQUIRED_PARAMETERS, set(parameters.keys()), 1):
         return False
 
     psi = parameters["psi"]
