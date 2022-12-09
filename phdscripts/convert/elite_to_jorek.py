@@ -188,6 +188,9 @@ def __convert_elite_to_jorek(
             target_directory,
             starwall_filepath,
         )
+        if not success:
+            print("Failed to write STARWALL namelist, reason above.")
+            return
 
         print("Successfully written STARWALL namelist.")
 
