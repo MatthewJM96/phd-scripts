@@ -4,7 +4,7 @@ from typing import Dict, List, Tuple
 
 def decomp_fourier_1d(
     geo: Tuple[float, float], points: List[Tuple[float, float]], modes: Tuple[int, int]
-) -> Dict[int, Tuple[float, float, float, float]]:
+) -> Dict[int, Tuple[float, float]]:
     """
     Convert a boundary given as a list of points and convert it into a set of cosine and
     sine modes in minor radius, suitable for ingestion by e.g. HELENA.
