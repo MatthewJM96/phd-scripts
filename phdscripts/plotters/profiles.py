@@ -23,9 +23,15 @@ def plot_profiles(
         plt.ylabel(yaxis_name)
 
     for prof_name, prof_values in profiles.items():
-        (line,) = plot_method(
+        ret = plot_method(
             [value[0] for value in prof_values], [value[1] for value in prof_values]
         )
+
+        if type(ret) is List:
+            (line,) = ret
+        else:
+            line = ret
+
         line.set_label(prof_name)
 
     if output_file or show:
