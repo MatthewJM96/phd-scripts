@@ -27,8 +27,8 @@ def plot_profiles(
             [value[0] for value in prof_values], [value[1] for value in prof_values]
         )
 
-        if type(ret) is List:
-            (line,) = ret
+        if type(ret) is list:
+            line = ret[0]
         else:
             line = ret
 
