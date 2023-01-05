@@ -1,11 +1,13 @@
-from typing import Callable, Dict, List, Optional, Tuple
+from typing import Callable, Dict, List, Optional, Tuple, Union
 
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
 
 
 def plot_profiles(
-    profiles: Dict[str, List[Tuple[float, float]]],
+    profiles: Dict[
+        str, Union[List[Tuple[float, float]], Tuple[List[Tuple[float, float]], str]]
+    ],
     plot_method: Callable = plt.plot,
     xaxis_name: Optional[str] = None,
     yaxis_name: Optional[str] = None,
@@ -24,9 +26,16 @@ def plot_profiles(
         plt.ylabel(yaxis_name)
 
     for prof_name, prof_values in profiles.items():
-        ret = plot_method(
-            [value[0] for value in prof_values], [value[1] for value in prof_values]
-        )
+        if type(prof_values) is list:
+            ret = plot_method(
+                [value[0] for value in prof_values], [value[1] for value in prof_values]
+            )
+        else:
+            ret = plot_method(
+                [value[0] for value in prof_values[0]],
+                [value[1] for value in prof_values[0]],
+                color=prof_values[1],
+            )
 
         if type(ret) is list:
             line = ret[0]
