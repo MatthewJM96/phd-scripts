@@ -13,6 +13,7 @@ def plot_profiles(
     output_file: Optional[str] = None,
     show: bool = False,
     aspect: str = "equal",
+    hide_legend: bool = False,
 ):
     plt.figure(fig)
 
@@ -34,7 +35,7 @@ def plot_profiles(
 
         line.set_label(prof_name)
 
-    if output_file or show:
+    if not hide_legend and (output_file or show):
         plt.legend()
 
     if output_file:
