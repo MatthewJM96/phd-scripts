@@ -4,7 +4,10 @@ import matplotlib.pyplot as plt
 
 
 def scatter_2d(
-    values: List[Tuple[float, float]], show: bool = False, output_file: str = None
+    values: List[Tuple[float, float]],
+    aspect: str = "equal",
+    show: bool = False,
+    output_file: str = None,
 ):
     plt.scatter([value[0] for value in values], [value[1] for value in values])
 
@@ -12,5 +15,5 @@ def scatter_2d(
         plt.savefig(output_file, transparent=True)
 
     if show:
-        plt.gca().set_aspect("equal", adjustable="box")
+        plt.gca().set_aspect(aspect, adjustable="box")
         plt.show()
