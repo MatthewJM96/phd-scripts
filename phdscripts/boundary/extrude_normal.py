@@ -11,6 +11,9 @@ def extrude_normal(
     based on these estimated normal vectors.
     """
 
+    if points[-1] == points[0]:
+        points = points[:-1]
+
     extruded_points: List[Tuple[float, float]] = []
     for i in range(len(points)):
         prior_point = points[i - 1]
