@@ -1,11 +1,11 @@
 from glob import glob
 from math import atan2, pi, sqrt
-from os import chdir, curdir
+from os import chdir, curdir, remove
 from os.path import getctime, isfile, join
 from re import findall
 from subprocess import run
-from tempfile import NamedTemporaryFile
 from typing import List, Tuple, Union
+from uuid import uuid4
 
 from phdscripts.input.reader import read_jorek_output, read_jorek_profile
 
@@ -35,7 +35,8 @@ def find_flux_surface(
     previous_dir = curdir
     chdir(jorek_directory)
 
-    with NamedTemporaryFile("w") as f:
+    script_filename = "fluxsurface_script_" + uuid4().hex
+    with open(script_filename, "w") as f:
         f.write(
             f"""namelist {jorek_namelist_filename}
 jorek-units
@@ -45,8 +46,9 @@ done
         """
         )
 
-        run(f"{jorek_postproc_binary} < {f.name}", shell=True, capture_output=True)
+    run(f"{jorek_postproc_binary} < {script_filename}", shell=True, capture_output=True)
 
+    remove(script_filename)
     chdir(previous_dir)
 
     # Retrieve results of running the script.
