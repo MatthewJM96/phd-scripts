@@ -107,8 +107,8 @@ def __interp_closest_points(
 
     below, above = __find_closest_points_to_theta(points, theta, magnetic_axis)
 
-    below_theta = __theta(points[below])
-    above_theta = __theta(points[above])
+    below_theta = __theta(points[below], magnetic_axis)
+    above_theta = __theta(points[above], magnetic_axis)
 
     below_fact = 1.0 - (theta - below_theta) / (below_theta + above_theta)
     above_fact = 1.0 - (above_theta - theta) / (below_theta + above_theta)
