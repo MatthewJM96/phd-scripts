@@ -8,7 +8,7 @@ REQUIRED_PARAMETERS = set(
 )
 
 
-def __write_profile(profile: List[List[float]], filepath: str) -> bool:
+def write_jorek_profile(profile: List[List[float]], filepath: str) -> bool:
     for idx in range(1, len(profile)):
         if len(profile[idx]) != len(profile[0]):
             return False
@@ -55,19 +55,19 @@ def write_jorek_files(
 
     # Write profiles to their files.
     #   Density
-    success = __write_profile(
+    success = write_jorek_profile(
         [psi, parameters["n"]], join(target_directory, density_filepath)
     )
     #   Temperature
-    success = success and __write_profile(
+    success = success and write_jorek_profile(
         [psi, parameters["T"]], join(target_directory, temperature_filepath)
     )
     #   FFprime
-    success = success and __write_profile(
+    success = success and write_jorek_profile(
         [psi, parameters["ffprime"]], join(target_directory, ffprime_filepath)
     )
     #   R-Z
-    success = success and __write_profile(
+    success = success and write_jorek_profile(
         [r_boundary, z_boundary, [psi[-1]] * len(r_boundary)],
         join(target_directory, rz_boundary_filepath),
     )
