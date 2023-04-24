@@ -1,5 +1,5 @@
 from os.path import join
-from typing import Dict, List, Tuple
+from typing import Callable, Dict, List, Tuple, Union
 
 from phdscripts.boundary import decomp_fourier_2d, extrude_normal, extrude_scale
 from phdscripts.validate import validate_required_keys
@@ -11,7 +11,7 @@ def write_starwall_files(
     parameters: Dict[str, List[float]],
     modes: Tuple[int, int],
     wall_distance: float,
-    extrude_method: str,
+    extrude_method: Union[str, Callable],
     target_directory: str,
     starwall_filepath: str = "starwall_namelist",
 ) -> bool:
@@ -33,13 +33,17 @@ def write_starwall_files(
     for idx in range(len(parameters["R"])):
         points.append((parameters["R"][idx], parameters["Z"][idx]))
 
-    extruded_points = points
+    extruded_points = None
     if wall_distance != 0.0:
-        if extrude_method == "scale":
-            extruded_points = extrude_scale(points, wall_distance)
-        elif extrude_method == "normal":
-            extruded_points = extrude_normal(points, wall_distance)
+        if type(extrude_method) is str:
+            if extrude_method == "scale":
+                extruded_points = extrude_scale(points, wall_distance)
+            elif extrude_method == "normal":
+                extruded_points = extrude_normal(points, wall_distance)
         else:
+            extruded_points = extrude_method(points, wall_distance)
+
+        if extruded_points is None:
             print(
                 (
                     f"    Wall extrusion method was not recognised: {extrude_method}.\n"
