@@ -9,7 +9,7 @@ from uuid import uuid4
 
 from phdscripts.input.reader import read_jorek_output, read_jorek_profile
 
-REAL_PATTERN = r"[0-9]+.[0-9]+E[+-][0-9][0-9]"
+REAL_PATTERN = r"-?[0-9]+.[0-9]+E[+-][0-9][0-9]"
 FLUXSURFACE_RESULTS_PATTERN = r"(" + REAL_PATTERN + r")\s+(" + REAL_PATTERN + r")"
 
 
