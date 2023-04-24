@@ -3,7 +3,7 @@ from os import makedirs
 from os.path import join
 from typing import List, Tuple
 
-from phdscripts.input import read_jorek_input_profile, write_jorek_profile
+from phdscripts.input import read_jorek_profile, write_jorek_profile
 
 COLD_EXTENSION_WIDTH = 0.01
 
@@ -18,17 +18,15 @@ def add_jorek_cold_boundary(
     extension_width: float = COLD_EXTENSION_WIDTH,
     source_psi_lim: float = 1.0,
 ):
-    success, temperature = read_jorek_input_profile(
-        join(source_directory, "temperature.txt")
-    )
+    success, temperature = read_jorek_profile(join(source_directory, "temperature.txt"))
     if not success:
         return
 
-    success, density = read_jorek_input_profile(join(source_directory, "density.txt"))
+    success, density = read_jorek_profile(join(source_directory, "density.txt"))
     if not success:
         return
 
-    success, ffprime = read_jorek_input_profile(join(source_directory, "ffprime.txt"))
+    success, ffprime = read_jorek_profile(join(source_directory, "ffprime.txt"))
     if not success:
         return
 
