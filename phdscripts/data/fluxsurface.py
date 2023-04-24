@@ -95,6 +95,20 @@ def __find_closest_points_to_theta(
             closest_theta_above = point_theta
             closest_theta_above_index = idx
 
+    if closest_theta_below_index is None:
+        # points[-2] because points[0] == points[-1]
+        point_theta = __theta(points[-2], magnetic_axis) + pi
+        if point_theta - theta < 0.0 and point_theta - theta > closest_theta_below:
+            closest_theta_below = point_theta
+            closest_theta_below_index = idx
+
+    if closest_theta_above_index is None:
+        # points[1] because points[0] == points[-1]
+        point_theta = __theta(points[1], magnetic_axis) + pi
+        if point_theta - theta > 0.0 and point_theta - theta < closest_theta_above:
+            closest_theta_above = point_theta
+            closest_theta_above_index = idx
+
     return closest_theta_below_index, closest_theta_above_index
 
 
