@@ -34,7 +34,7 @@ done
         """
         )
 
-        run(f"{jorek_postproc_binary} < {f.name}".split())
+        run(f"{jorek_postproc_binary} < {f.name}", shell=True, capture_output=True)
 
     chdir(previous_dir)
 
@@ -48,4 +48,4 @@ done
     # Parse results of running the script.
     results = findall(FLUXSURFACE_RESULTS_PATTERN, results)
 
-    return [(x[0], x[1]) for x in results]
+    return [(float(x[0]), float(x[1])) for x in results]
