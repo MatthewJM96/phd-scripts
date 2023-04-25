@@ -147,6 +147,79 @@ def __interp_closest_points(
     )
 
 
+def __smooth_points(
+    points: List[Tuple[float, float]], weights: List[float]
+) -> List[Tuple[float, float]]:
+    """
+    Smooths out a list of points using a linear combination of surrounding points
+    according to the provided weights.
+    """
+
+    if len(weights) == 0:
+        return []
+
+    def __weight(weight_idx: int) -> float:
+        return weights[weight_idx] / 2.0
+
+    smoothed_points = []
+    for point_idx in range(len(points)):
+        smoothed_pt_x = points[point_idx][0] * __weight(0) * 2.0
+        smoothed_pt_y = points[point_idx][1] * __weight(0) * 2.0
+
+        if point_idx < len(weights) - 1:
+            for weighted_point_idx in range(-len(weights) + point_idx, -1):
+                weight_idx = -weighted_point_idx + point_idx - 1
+                smoothed_pt_x += points[weighted_point_idx][0] * __weight(weight_idx)
+                smoothed_pt_y += points[weighted_point_idx][1] * __weight(weight_idx)
+            for weighted_point_idx in range(0, point_idx):
+                weight_idx = point_idx - weighted_point_idx
+                smoothed_pt_x += points[weighted_point_idx][0] * __weight(weight_idx)
+                smoothed_pt_y += points[weighted_point_idx][1] * __weight(weight_idx)
+            for weight_idx in range(1, len(weights)):
+                smoothed_pt_x += points[point_idx + weight_idx][0] * __weight(
+                    weight_idx
+                )
+                smoothed_pt_y += points[point_idx + weight_idx][1] * __weight(
+                    weight_idx
+                )
+        elif point_idx > len(points) - len(weights):
+            for weighted_point_idx in range(
+                1, len(weights) - len(points) + point_idx + 1
+            ):
+                weight_idx = weighted_point_idx + len(points) - point_idx - 1
+                smoothed_pt_x += points[weighted_point_idx][0] * __weight(weight_idx)
+                smoothed_pt_y += points[weighted_point_idx][1] * __weight(weight_idx)
+            for weighted_point_idx in range(point_idx + 1, len(points)):
+                weight_idx = weighted_point_idx - point_idx
+                smoothed_pt_x += points[weighted_point_idx][0] * __weight(weight_idx)
+                smoothed_pt_y += points[weighted_point_idx][1] * __weight(weight_idx)
+            for weight_idx in range(1, len(weights)):
+                smoothed_pt_x += points[point_idx - weight_idx][0] * __weight(
+                    weight_idx
+                )
+                smoothed_pt_y += points[point_idx - weight_idx][1] * __weight(
+                    weight_idx
+                )
+        else:
+            for weight_idx in range(1, len(weights)):
+                smoothed_pt_x += points[point_idx - weight_idx][0] * __weight(
+                    weight_idx
+                )
+                smoothed_pt_x += points[point_idx + weight_idx][0] * __weight(
+                    weight_idx
+                )
+                smoothed_pt_y += points[point_idx - weight_idx][1] * __weight(
+                    weight_idx
+                )
+                smoothed_pt_y += points[point_idx + weight_idx][1] * __weight(
+                    weight_idx
+                )
+
+        smoothed_points.append((smoothed_pt_x, smoothed_pt_y))
+
+    return smoothed_points
+
+
 def __adjust_boundary_to_match_flux_surface(
     magnetic_axis: Tuple[float, float],
     boundary: List[Tuple[float, float]],
@@ -188,7 +261,7 @@ def __adjust_boundary_to_match_flux_surface(
             )
         )
 
-    return new_boundary
+    return __smooth_points(new_boundary, [0.4, 0.3, 0.2, 0.1])
 
 
 def adjust_boundary_to_match_flux_surface(
