@@ -7,6 +7,7 @@ from subprocess import run
 from typing import List, Tuple, Union
 from uuid import uuid4
 
+from phdscripts.boundary import create_boundary_from_fourier_2d, decomp_fourier_2d
 from phdscripts.input.reader import read_jorek_output, read_jorek_profile
 
 REAL_PATTERN = r"-?[0-9]+.[0-9]+E[+-][0-9][0-9]"
@@ -220,6 +221,37 @@ def __smooth_points(
     return smoothed_points
 
 
+def __smooth_points_fourier(
+    points: List[Tuple[float, float]],
+    threshold: float = 0.002,
+    start_modes: Tuple[int, int] = (-20, 20),
+) -> List[Tuple[float, float]]:
+    """
+    Smooths out a list of points using a Fourier decomposition truncation approach.
+    """
+
+    curr_modes = start_modes
+    decomp_result = decomp_fourier_2d(points, start_modes)
+
+    def __decomp_result_bad() -> bool:
+        return (
+            decomp_result[curr_modes[0]][0] > threshold
+            or decomp_result[curr_modes[0]][1] > threshold
+            or decomp_result[curr_modes[0]][2] > threshold
+            or decomp_result[curr_modes[0]][3] > threshold
+            or decomp_result[curr_modes[1]][0] > threshold
+            or decomp_result[curr_modes[1]][1] > threshold
+            or decomp_result[curr_modes[1]][2] > threshold
+            or decomp_result[curr_modes[1]][3] > threshold
+        )
+
+    while __decomp_result_bad():
+        curr_modes = (curr_modes[0] - 1, curr_modes[1] + 1)
+        decomp_result = decomp_fourier_2d(points, curr_modes)
+
+    return create_boundary_from_fourier_2d(decomp_result, len(points))
+
+
 def __adjust_boundary_to_match_flux_surface(
     magnetic_axis: Tuple[float, float],
     boundary: List[Tuple[float, float]],
@@ -261,7 +293,7 @@ def __adjust_boundary_to_match_flux_surface(
             )
         )
 
-    return __smooth_points(new_boundary, [0.4, 0.3, 0.2, 0.1])
+    return __smooth_points_fourier(new_boundary)
 
 
 def adjust_boundary_to_match_flux_surface(
