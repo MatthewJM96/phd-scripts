@@ -91,6 +91,7 @@ def __find_closest_points_to_theta(
 
     for idx in range(len(points)):
         point_theta = __theta(points[idx], magnetic_axis)
+        theta_diff = point_theta - theta
 
         if last_point_theta is not None and abs(point_theta - last_point_theta) > pi:
             if point_theta > last_point_theta:
@@ -98,26 +99,28 @@ def __find_closest_points_to_theta(
             else:
                 mirror_indices = (idx, idx - 1)
 
-        if point_theta - theta < 0.0 and point_theta - theta > closest_theta_below:
-            closest_theta_below = point_theta
+        if theta_diff < 0.0 and theta_diff > closest_theta_below:
+            closest_theta_below = theta_diff
             closest_theta_below_index = idx
-        elif point_theta - theta > 0.0 and point_theta - theta < closest_theta_above:
-            closest_theta_above = point_theta
+        elif theta_diff > 0.0 and theta_diff < closest_theta_above:
+            closest_theta_above = theta_diff
             closest_theta_above_index = idx
 
         last_point_theta = point_theta
 
     if closest_theta_below_index is None:
         point_theta = -(2 * pi - __theta(points[mirror_indices[1]], magnetic_axis))
+        theta_diff = point_theta - theta
         print("point ", point_theta)
-        if point_theta - theta < 0.0 and point_theta - theta > closest_theta_below:
-            closest_theta_below = point_theta
+        if theta_diff < 0.0 and theta_diff > closest_theta_below:
+            closest_theta_below = theta_diff
             closest_theta_below_index = idx
 
     if closest_theta_above_index is None:
         point_theta = 2 * pi + __theta(points[mirror_indices[0]], magnetic_axis)
-        if point_theta - theta > 0.0 and point_theta - theta < closest_theta_above:
-            closest_theta_above = point_theta
+        theta_diff = point_theta - theta
+        if theta_diff > 0.0 and theta_diff < closest_theta_above:
+            closest_theta_above = theta_diff
             closest_theta_above_index = idx
 
     return closest_theta_below_index, closest_theta_above_index
