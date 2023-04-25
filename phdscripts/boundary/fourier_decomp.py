@@ -85,7 +85,7 @@ def create_boundary_from_fourier_1d(
 
     freq = 1.0 / float(N)
 
-    for idx in range(N):
+    for idx in range(N + 1):
         theta = 2 * math.pi * freq * float(idx)
         R = 0.0
         for mode, coeffs in coefficients.items():
@@ -105,7 +105,7 @@ def create_boundary_from_fourier_2d(
 
     freq = 1.0 / float(N)
 
-    for idx in range(N):
+    for idx in range(N + 1):
         x = 0.0
         y = 0.0
         for mode, coeffs in coefficients.items():
