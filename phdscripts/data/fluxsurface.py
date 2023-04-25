@@ -129,14 +129,14 @@ def __find_closest_points_to_theta(
         print("point ", point_theta)
         if theta_diff < 0.0 and theta_diff > closest_theta_below:
             closest_theta_below = theta_diff
-            closest_theta_below_index = idx
+            closest_theta_below_index = mirror_indices[1]
 
     if closest_theta_above_index is None:
         point_theta = 2 * pi + __theta(points[mirror_indices[0]], magnetic_axis)
         theta_diff = point_theta - theta
         if theta_diff > 0.0 and theta_diff < closest_theta_above:
             closest_theta_above = theta_diff
-            closest_theta_above_index = idx
+            closest_theta_above_index = mirror_indices[0]
 
     return closest_theta_below_index, closest_theta_above_index
 
