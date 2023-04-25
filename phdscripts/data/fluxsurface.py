@@ -87,6 +87,7 @@ def __find_closest_points_to_theta(
     closest_theta_below_index = None
     closest_theta_above_index = None
 
+    first_point_theta = None
     last_point_theta = None
     mirror_indices = None
 
@@ -94,11 +95,24 @@ def __find_closest_points_to_theta(
         point_theta = __theta(points[idx], magnetic_axis)
         theta_diff = point_theta - theta
 
-        if last_point_theta is not None and abs(point_theta - last_point_theta) > pi:
-            if point_theta > last_point_theta:
-                mirror_indices = (idx - 1, idx)
-            else:
-                mirror_indices = (idx, idx - 1)
+        if idx == 0:
+            first_point_theta = point_theta
+
+        if idx != len(points) - 1:
+            if (
+                last_point_theta is not None
+                and abs(point_theta - last_point_theta) > pi
+            ):
+                if point_theta > last_point_theta:
+                    mirror_indices = (idx - 1, idx)
+                else:
+                    mirror_indices = (idx, idx - 1)
+        else:
+            if abs(point_theta - first_point_theta) > pi:
+                if point_theta > last_point_theta:
+                    mirror_indices = (0, len(points) - 1)
+                else:
+                    mirror_indices = (len(points) - 1, 0)
 
         if theta_diff < 0.0 and theta_diff > closest_theta_below:
             closest_theta_below = theta_diff
