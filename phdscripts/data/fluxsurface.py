@@ -183,8 +183,8 @@ def __adjust_boundary_to_match_flux_surface(
 
         new_boundary.append(
             (
-                (bnd_point[0] - magnetic_axis[0]) * boundary_blowout,
-                (bnd_point[1] - magnetic_axis[1]) * boundary_blowout,
+                (bnd_point[0] - magnetic_axis[0]) * boundary_blowout + magnetic_axis[0],
+                (bnd_point[1] - magnetic_axis[1]) * boundary_blowout + magnetic_axis[1],
             )
         )
 
