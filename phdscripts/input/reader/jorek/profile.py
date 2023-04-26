@@ -28,3 +28,33 @@ def read_jorek_profile(filepath: str) -> Tuple[bool, List[Tuple[float, float]]]:
             return False, []
 
     return True, profile
+
+
+def read_jorek_RZpsi_profile(
+    filepath: str,
+) -> Tuple[bool, List[Tuple[float, float, float]]]:
+    """
+    Extracts the named inpout profiles used by JOREK in a run.
+    """
+
+    if not isfile(filepath):
+        print(f"JOREK input profile does not exist:\n    {filepath}")
+        return False, []
+
+    lines = []
+    with open(filepath, "r") as input_profile_file:
+        lines = input_profile_file.readlines()
+
+    if lines is None or (len(lines) == 1 and lines[0] == ""):
+        print(f"JOREK input profile file at:\n    {filepath}\nis empty!")
+        return False, []
+
+    profile = []
+    for line in lines:
+        values = line.strip().split()
+        try:
+            profile.append((float(values[0]), float(values[1]), float(values[2])))
+        except ValueError:
+            return False, []
+
+    return True, profile

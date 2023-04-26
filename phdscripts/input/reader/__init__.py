@@ -9,6 +9,7 @@ from .jorek import (
     read_jorek_namelist,
     read_jorek_output,
     read_jorek_profile,
+    read_jorek_RZpsi_profile,
 )
 
 __all__ = [
@@ -19,5 +20,6 @@ __all__ = [
     "read_jorek_input_profiles",
     "read_jorek_output",
     "read_jorek_profile",
+    "read_jorek_RZpsi_profile",
     "read_jorek_namelist",
 ]
