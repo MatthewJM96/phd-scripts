@@ -65,16 +65,16 @@ done
     return True, [(float(x[0]), float(x[1])) for x in results]
 
 
-def __theta(point: Tuple[float, float], magnetic_axis: Tuple[float, float]) -> float:
+def __theta(point: Tuple[float, float], origin: Tuple[float, float]) -> float:
     """
     Calculates the theta angle from the inboard side of a tokamak for a given RZ
     coordinate with magnetic axis as the origin.
     """
-    return atan2(point[1] - magnetic_axis[1], point[0] - magnetic_axis[0]) + pi
+    return atan2(point[1] - origin[1], point[0] - origin[0]) + pi
 
 
 def __find_closest_points_to_theta(
-    points: List[Tuple[float, float]], theta: float, magnetic_axis: Tuple[float, float]
+    points: List[Tuple[float, float]], theta: float, origin: Tuple[float, float]
 ) -> Tuple[int, int]:
     """
     Finds the two closest points to the given theta with respect to the given magnetic
@@ -92,7 +92,7 @@ def __find_closest_points_to_theta(
     mirror_indices = None
 
     for idx in range(len(points)):
-        point_theta = __theta(points[idx], magnetic_axis)
+        point_theta = __theta(points[idx], origin)
         theta_diff = point_theta - theta
 
         if idx == 0:
@@ -124,7 +124,7 @@ def __find_closest_points_to_theta(
         last_point_theta = point_theta
 
     if closest_theta_below_index is None:
-        point_theta = -(2 * pi - __theta(points[mirror_indices[1]], magnetic_axis))
+        point_theta = -(2 * pi - __theta(points[mirror_indices[1]], origin))
         theta_diff = point_theta - theta
         print("point ", point_theta)
         if theta_diff < 0.0 and theta_diff > closest_theta_below:
@@ -132,7 +132,7 @@ def __find_closest_points_to_theta(
             closest_theta_below_index = mirror_indices[1]
 
     if closest_theta_above_index is None:
-        point_theta = 2 * pi + __theta(points[mirror_indices[0]], magnetic_axis)
+        point_theta = 2 * pi + __theta(points[mirror_indices[0]], origin)
         theta_diff = point_theta - theta
         if theta_diff > 0.0 and theta_diff < closest_theta_above:
             closest_theta_above = theta_diff
@@ -142,16 +142,16 @@ def __find_closest_points_to_theta(
 
 
 def __interp_closest_points(
-    points: List[Tuple[float, float]], theta: float, magnetic_axis: Tuple[float, float]
+    points: List[Tuple[float, float]], theta: float, origin: Tuple[float, float]
 ) -> Tuple[float, float]:
     """
     Creates an interpolated point between the two closest points to a given theta.
     """
 
-    below, above = __find_closest_points_to_theta(points, theta, magnetic_axis)
+    below, above = __find_closest_points_to_theta(points, theta, origin)
 
-    below_theta = __theta(points[below], magnetic_axis)
-    above_theta = __theta(points[above], magnetic_axis)
+    below_theta = __theta(points[below], origin)
+    above_theta = __theta(points[above], origin)
 
     below_fact = (theta - below_theta) / (above_theta - below_theta)
     above_fact = (above_theta - theta) / (above_theta - below_theta)
@@ -267,7 +267,7 @@ def __smooth_points_fourier(
 
 
 def __adjust_boundary_to_match_flux_surface(
-    magnetic_axis: Tuple[float, float],
+    origin: Tuple[float, float],
     boundary: List[Tuple[float, float]],
     actual_flux_surface: List[Tuple[float, float]],
     target_flux_surface: List[Tuple[float, float]],
@@ -280,30 +280,30 @@ def __adjust_boundary_to_match_flux_surface(
 
     new_boundary = []
     for bnd_point in boundary:
-        theta = __theta(bnd_point, magnetic_axis)
+        theta = __theta(bnd_point, origin)
 
         actual_flux_at_theta = __interp_closest_points(
-            actual_flux_surface, theta, magnetic_axis
+            actual_flux_surface, theta, origin
         )
         target_flux_at_theta = __interp_closest_points(
-            target_flux_surface, theta, magnetic_axis
+            target_flux_surface, theta, origin
         )
 
         actual_flux_mag_axis_dist = sqrt(
-            (actual_flux_at_theta[0] - magnetic_axis[0]) ** 2.0
-            + (actual_flux_at_theta[1] - magnetic_axis[1]) ** 2.0
+            (actual_flux_at_theta[0] - origin[0]) ** 2.0
+            + (actual_flux_at_theta[1] - origin[1]) ** 2.0
         )
         target_flux_mag_axis_dist = sqrt(
-            (target_flux_at_theta[0] - magnetic_axis[0]) ** 2.0
-            + (target_flux_at_theta[1] - magnetic_axis[1]) ** 2.0
+            (target_flux_at_theta[0] - origin[0]) ** 2.0
+            + (target_flux_at_theta[1] - origin[1]) ** 2.0
         )
 
         boundary_blowout = target_flux_mag_axis_dist / actual_flux_mag_axis_dist
 
         new_boundary.append(
             (
-                (bnd_point[0] - magnetic_axis[0]) * boundary_blowout + magnetic_axis[0],
-                (bnd_point[1] - magnetic_axis[1]) * boundary_blowout + magnetic_axis[1],
+                (bnd_point[0] - origin[0]) * boundary_blowout + origin[0],
+                (bnd_point[1] - origin[1]) * boundary_blowout + origin[1],
             )
         )
 
@@ -318,6 +318,7 @@ def adjust_boundary_to_match_flux_surface(
     jorek_output_filename: str,
     jorek_namelist_filename: str = "jorek_namelist",
     jorek_boundary_filename: str = "rz_boundary.txt",
+    use_geometric_axis: bool = False,
 ) -> Tuple[bool, List[Tuple[float, float]]]:
     """
     Takes the actual flux surface in a JOREK run with the given JOREK boundary, and
@@ -342,14 +343,28 @@ def adjust_boundary_to_match_flux_surface(
         print(f"Could not read JOREK output file: {output_filepath}")
         return False, []
 
-    if "magnetic_axis" not in output.keys():
-        print("Could not extract needed information (mag axis) from JOREK std output.")
-        return False, []
+    if use_geometric_axis:
+        if "geometric_centre" not in output.keys():
+            print(
+                "Could not extract needed information (mag axis) from JOREK std output."
+            )
+            return False, []
 
-    magnetic_axis = (
-        float(output["magnetic_axis"]["R"]),
-        float(output["magnetic_axis"]["Z"]),
-    )
+        origin = (
+            float(output["geometric_centre"]["R"]),
+            float(output["geometric_centre"]["Z"]),
+        )
+    else:
+        if "magnetic_axis" not in output.keys():
+            print(
+                "Could not extract needed information (mag axis) from JOREK std output."
+            )
+            return False, []
+
+        origin = (
+            float(output["magnetic_axis"]["R"]),
+            float(output["magnetic_axis"]["Z"]),
+        )
 
     boundary_filepath = join(jorek_directory, jorek_boundary_filename)
     success, boundary = read_jorek_profile(boundary_filepath)
@@ -367,5 +382,5 @@ def adjust_boundary_to_match_flux_surface(
             return False, []
 
     return True, __adjust_boundary_to_match_flux_surface(
-        magnetic_axis, boundary, actual_flux_surface, target_flux_surface
+        origin, boundary, actual_flux_surface, target_flux_surface
     )
