@@ -15,10 +15,10 @@ FLUXSURFACE_RESULTS_PATTERN = r"(" + REAL_PATTERN + r")\s+(" + REAL_PATTERN + r"
 
 
 def find_flux_surface(
+    psi: float,
     jorek_postproc_binary: str,
     jorek_directory: str,
     jorek_namelist_filename: str,
-    psi: float,
 ) -> Tuple[bool, List[Tuple[float, float]]]:
     """
     Obtains RZ points lying on a specified flux surface.
@@ -330,7 +330,7 @@ def adjust_boundary_RZ_to_match_flux_surface(
         return False, []
 
     success, actual_flux_surface = find_flux_surface(
-        jorek_postproc_binary, jorek_directory, jorek_namelist_filename, psi
+        psi, jorek_postproc_binary, jorek_directory, jorek_namelist_filename
     )
     if not success:
         print("Could not obtain actual flux surface.")
