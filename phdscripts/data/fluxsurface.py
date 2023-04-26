@@ -265,7 +265,7 @@ def __smooth_points_fourier(
     return create_boundary_from_fourier_2d(decomp_result, len(points))
 
 
-def __adjust_boundary_to_match_flux_surface(
+def __adjust_boundary_RZ_to_match_flux_surface(
     origin: Tuple[float, float],
     boundary: List[Tuple[float, float]],
     actual_flux_surface: List[Tuple[float, float]],
@@ -309,7 +309,7 @@ def __adjust_boundary_to_match_flux_surface(
     return __smooth_points_fourier(new_boundary)
 
 
-def adjust_boundary_to_match_flux_surface(
+def adjust_boundary_RZ_to_match_flux_surface(
     psi: float,
     target_flux_surface: Union[str, List[Tuple[float, float]]],
     jorek_postproc_binary: str,
@@ -380,6 +380,6 @@ def adjust_boundary_to_match_flux_surface(
             )
             return False, []
 
-    return True, __adjust_boundary_to_match_flux_surface(
+    return True, __adjust_boundary_RZ_to_match_flux_surface(
         origin, boundary, actual_flux_surface, target_flux_surface
     )
