@@ -355,7 +355,7 @@ def __adjust_boundary_psi_to_match_flux_surface(
             (bnd_point[0], bnd_point[1], bnd_point[2] * boundary_blowout)
         )
 
-    return __smooth_points_fourier(new_boundary)
+    return new_boundary
 
 
 def adjust_boundary_RZ_to_match_flux_surface(
