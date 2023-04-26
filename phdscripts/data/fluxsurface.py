@@ -126,7 +126,6 @@ def __find_closest_points_to_theta(
     if closest_theta_below_index is None:
         point_theta = -(2 * pi - __theta(points[mirror_indices[1]], origin))
         theta_diff = point_theta - theta
-        print("point ", point_theta)
         if theta_diff < 0.0 and theta_diff > closest_theta_below:
             closest_theta_below = theta_diff
             closest_theta_below_index = mirror_indices[1]
