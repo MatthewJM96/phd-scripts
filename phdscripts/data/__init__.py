@@ -4,6 +4,7 @@ from .fluxsurface import (
     adjust_boundary_RZ_to_match_flux_surface,
     find_flux_surface,
 )
+from .geqdsk import G_EQDSK
 
 __all__ = [
     "BoundaryData",
@@ -12,4 +13,5 @@ __all__ = [
     "find_flux_surface",
     "adjust_boundary_psi_to_match_flux_surface",
     "adjust_boundary_RZ_to_match_flux_surface",
+    "G_EQDSK",
 ]
