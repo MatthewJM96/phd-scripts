@@ -2,6 +2,8 @@ from os.path import isfile
 from re import findall
 from typing import List, Tuple
 
+from numpy import linspace, ndarray, zeros
+
 from phdscripts.data import G_EQDSK
 
 FORTRAN_INTEGERS_AND_FLOATS_PATTERN = r"\s?([-]?[0-9]+(\.[0-9]+)?(E[+-][0-9]+)?)"
@@ -92,7 +94,17 @@ def __parse_pprime(raw_values: List[str], nr: int) -> Tuple[bool, List[float]]:
 def __parse_psi_grid(
     raw_values: List[str], nr: int, nz: int
 ) -> Tuple[bool, List[float]]:
-    return __parse_profile(raw_values, nr * nz, 20 + 4 * nr)
+    success, profile = __parse_profile(raw_values, nr * nz, 20 + 4 * nr)
+    if not success:
+        return False, []
+
+    psi_grid = zeros((nr, nz))
+    for j in range(nz):
+        for i in range(nr):
+            idx = j * nr + i
+            psi_grid[i][j] = profile[idx]
+
+    return True, psi_grid
 
 
 def __parse_q(raw_values: List[str], nr: int, nz: int) -> Tuple[bool, List[float]]:
@@ -130,6 +142,28 @@ def __parse_limiter_surface(
         return False, []
 
     return True, [(profile[i], profile[i + 1]) for i in range(0, nlim * 2, 2)]
+
+
+def __psi_n(nr: int) -> ndarray:
+    return [float(i) / float(nr) for i in range(nr)]
+
+
+def __grid_R(
+    origin: Tuple[float, float],
+    resolution: Tuple[int, int],
+    dimensions: Tuple[float, float],
+) -> List[Tuple[float]]:
+    return linspace(origin[0], origin[0] + dimensions[0], resolution[0]).tolist()
+
+
+def __grid_Z(
+    origin: Tuple[float, float],
+    resolution: Tuple[int, int],
+    dimensions: Tuple[float, float],
+) -> List[Tuple[float]]:
+    return linspace(
+        origin[1] - dimensions[1] / 2.0, origin[1] + dimensions[1] / 2.0, resolution[1]
+    ).tolist()
 
 
 def __parse_geqdsk(contents: List[str]) -> Tuple[bool, G_EQDSK]:
@@ -211,6 +245,8 @@ def __parse_geqdsk(contents: List[str]) -> Tuple[bool, G_EQDSK]:
     geqdsk["resolution"] = (nr, nz)
     geqdsk["dimensions"] = dimensions
     geqdsk["origin"] = origin
+    geqdsk["grid_R"] = __grid_R(origin, (nr, nz), dimensions)
+    geqdsk["grid_Z"] = __grid_Z(origin, (nr, nz), dimensions)
     geqdsk["R_geo"] = R_geo
     geqdsk["B_geo"] = B_geo
     geqdsk["R_mag"] = R_mag
@@ -223,6 +259,8 @@ def __parse_geqdsk(contents: List[str]) -> Tuple[bool, G_EQDSK]:
     geqdsk["ffprime"] = ffprime
     geqdsk["pprime"] = pprime
     geqdsk["psi_grid"] = psi_grid
+    geqdsk["psi_n"] = __psi_n(nr)
+    geqdsk["q"] = q
     geqdsk["boundary"] = boundary
     geqdsk["limiter_surface"] = limiter_surface
 

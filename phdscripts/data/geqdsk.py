@@ -24,6 +24,8 @@ class G_EQDSK(dict):
         self.__setattr__("dimensions", (0, 0))
         # Note that the grid's origin is define as left in R and central in Z.
         self.__setattr__("origin", (0, 0))
+        self.__setattr__("grid_R", [])
+        self.__setattr__("grid_Z", [])
         self.__setattr__("R_geo", 0)
         self.__setattr__("B_geo", 0)
         self.__setattr__("R_mag", 0)
@@ -36,6 +38,7 @@ class G_EQDSK(dict):
         self.__setattr__("ffprime", [])
         self.__setattr__("pprime", [])
         self.__setattr__("q", [])
-        self.__setattr__("psi_grid", [])
+        self.__setattr__("psi_grid", [[]])
+        self.__setattr__("psi_n", [])
         self.__setattr__("boundary", [])
         self.__setattr__("limiter_surface", [])
