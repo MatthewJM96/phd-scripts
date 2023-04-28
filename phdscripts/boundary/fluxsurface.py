@@ -7,12 +7,13 @@ from subprocess import run
 from typing import List, Tuple, Union
 from uuid import uuid4
 
-from phdscripts.boundary import create_boundary_from_fourier_2d, decomp_fourier_2d
 from phdscripts.input.reader import (
     read_jorek_output,
     read_jorek_profile,
     read_jorek_RZpsi_profile,
 )
+
+from .fourier_decomp import create_boundary_from_fourier_2d, decomp_fourier_2d
 
 REAL_PATTERN = r"-?[0-9]+.[0-9]+E[+-][0-9][0-9]"
 FLUXSURFACE_RESULTS_PATTERN = r"(" + REAL_PATTERN + r")\s+(" + REAL_PATTERN + r")"

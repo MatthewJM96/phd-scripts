@@ -3,7 +3,8 @@ from os import makedirs
 from os.path import join
 from typing import List, Tuple
 
-from phdscripts.input import read_jorek_profile, write_jorek_profile
+from phdscripts.input.reader import read_jorek_profile
+from phdscripts.input.writer import write_jorek_profile
 
 COLD_EXTENSION_WIDTH = 0.01
 

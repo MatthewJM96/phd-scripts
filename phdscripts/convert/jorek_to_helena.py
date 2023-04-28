@@ -2,12 +2,12 @@ from os.path import join
 
 from phdscripts.convert import convert_profile_points
 from phdscripts.data import BoundaryData
-from phdscripts.input import (
+from phdscripts.input.reader import (
     read_jorek_equilibrium_file,
     read_jorek_input_profiles,
     read_jorek_namelist,
-    write_helena_input,
 )
+from phdscripts.input.writer import write_helena_input
 from phdscripts.math import linear_extrapolate
 
 
