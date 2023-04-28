@@ -129,7 +129,7 @@ def __parse_limiter_surface(
     if not success:
         return False, []
 
-    return True, [(profile[i], profile[i + 1]) for i in range(0, nbnd * 2, 2)]
+    return True, [(profile[i], profile[i + 1]) for i in range(0, nlim * 2, 2)]
 
 
 def __parse_geqdsk(contents: List[str]) -> Tuple[bool, G_EQDSK]:
