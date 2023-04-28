@@ -135,6 +135,7 @@ def __parse_limiter_surface(
 def __parse_geqdsk(contents: List[str]) -> Tuple[bool, G_EQDSK]:
     success, case_name, nr, nz = __parse_header(contents[0])
     if not success:
+        print("Could not parse header of G EQDSK file.")
         return False, G_EQDSK()
 
     # Have to split lines using regex as Fortran doesn't put spaces between floats when
@@ -147,50 +148,62 @@ def __parse_geqdsk(contents: List[str]) -> Tuple[bool, G_EQDSK]:
 
     success, dimensions, origin = __parse_domain(raw_values)
     if not success:
+        print("Could not parse domain of G EQDSK file.")
         return False, G_EQDSK()
 
     success, R_geo, B_geo, R_mag, Z_mag, psi_mag = __parse_axes(raw_values)
     if not success:
+        print("Could not parse axes of G EQDSK file.")
         return False, G_EQDSK()
 
     success, psi_bnd, current = __parse_current_and_psi_bnd(raw_values)
     if not success:
+        print("Could not parse current and psi boundary of G EQDSK file.")
         return False, G_EQDSK()
 
     success, f_poloidal = __parse_f_poloidal(raw_values, nr)
     if not success:
+        print("Could not parse Fpol of G EQDSK file.")
         return False, G_EQDSK()
 
     success, pressure = __parse_pressure(raw_values, nr)
     if not success:
+        print("Could not parse pressure of G EQDSK file.")
         return False, G_EQDSK()
 
     success, ffprime = __parse_ffprime(raw_values, nr)
     if not success:
+        print("Could not parse FF' of G EQDSK file.")
         return False, G_EQDSK()
 
     success, pprime = __parse_pprime(raw_values, nr)
     if not success:
+        print("Could not parse P' of G EQDSK file.")
         return False, G_EQDSK()
 
     success, psi_grid = __parse_psi_grid(raw_values, nr, nz)
     if not success:
+        print("Could not parse psi grid of G EQDSK file.")
         return False, G_EQDSK()
 
     success, q = __parse_q(raw_values, nr, nz)
     if not success:
+        print("Could not parse q of G EQDSK file.")
         return False, G_EQDSK()
 
     success, nbnd, nlim = __parse_num_bnd_lim(raw_values, nr, nz)
     if not success:
+        print("Could not parse boundary and limiter point counts of G EQDSK file.")
         return False, G_EQDSK()
 
     success, boundary = __parse_boundary(raw_values, nr, nz, nbnd)
     if not success:
+        print("Could not parse boundary of G EQDSK file.")
         return False, G_EQDSK()
 
     success, limiter_surface = __parse_limiter_surface(raw_values, nr, nz, nbnd, nlim)
     if not success:
+        print("Could not parse limiter surface of G EQDSK file.")
         return False, G_EQDSK()
 
     geqdsk = G_EQDSK()
@@ -218,6 +231,7 @@ def __parse_geqdsk(contents: List[str]) -> Tuple[bool, G_EQDSK]:
 
 def read_geqdsk(filepath: str) -> Tuple[bool, G_EQDSK]:
     if not isfile(filepath):
+        print("Could not find geqdsk file:", filepath)
         return False, G_EQDSK()
 
     with open(filepath, "r") as f:
