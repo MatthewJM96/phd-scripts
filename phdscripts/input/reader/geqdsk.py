@@ -17,7 +17,10 @@ def __parse_header(header: str) -> Tuple[bool, str, int, int]:
     if len(vals) != 3:
         return False, "", 0, 0
 
-    return True, header[:50], vals[1], vals[2]
+    try:
+        return True, header[:50], int(vals[1]), int(vals[2])
+    except Exception:
+        return False, "", 0, 0
 
 
 def __parse_domain(
