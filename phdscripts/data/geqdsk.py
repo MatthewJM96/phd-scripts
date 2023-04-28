@@ -1,4 +1,6 @@
-from typing import Any
+from typing import Any, Optional, Tuple, Union
+
+from scipy.interpolate import RectBivariateSpline
 
 
 class G_EQDSK(dict):
@@ -42,3 +44,29 @@ class G_EQDSK(dict):
         self.__setattr__("psi_n", [])
         self.__setattr__("boundary", [])
         self.__setattr__("limiter_surface", [])
+
+    def psi_at(
+        self, R: Union[float, Tuple[float, float]], Z: Optional[float] = None
+    ) -> float:
+        spline = RectBivariateSpline(self["grid_R"], self["grid_Z"], self["psi_grid"])
+
+        if isinstance(R, float) and not isinstance(Z, float):
+            return 99999.0
+        elif not isinstance(R, float):
+            Z = R[1]
+            R = R[0]
+
+        return spline(R, Z)
+
+    def psi_normalised_at(
+        self, R: Union[float, Tuple[float, float]], Z: Optional[float] = None
+    ) -> float:
+        spline = RectBivariateSpline(self["grid_R"], self["grid_Z"], self["psi_grid"])
+
+        if isinstance(R, float) and not isinstance(Z, float):
+            return 99999.0
+        elif not isinstance(R, float):
+            Z = R[1]
+            R = R[0]
+
+        return (spline(R, Z) - self["psi_mag"]) / (self["psi_bnd"] - self["psi_mag"])
