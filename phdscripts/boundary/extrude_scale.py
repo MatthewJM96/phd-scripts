@@ -52,10 +52,7 @@ def extrude_scale_from_centre(
 
     extruded_points: List[Tuple[float, float]] = []
     for point in points:
-        print(point)
         origin_vec = (point[0] - centre[0], point[1] - centre[1])
-
-        print(origin_vec)
 
         extruded_pt_x = centre[0] + origin_vec[0]
         if origin_vec[0] * distance >= 0.0:
@@ -70,7 +67,5 @@ def extrude_scale_from_centre(
             extruded_pt_y -= pow(abs(origin_vec[1] * distance), scale_pow)
 
         extruded_points.append((extruded_pt_x, extruded_pt_y))
-
-        print(extruded_points[-1])
 
     return extruded_points
