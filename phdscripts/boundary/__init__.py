@@ -11,6 +11,12 @@ from .fourier_decomp import (
     decomp_fourier_1d,
     decomp_fourier_2d,
 )
+from .geqdsk import (
+    get_normalised_psi_for_boundary,
+    get_normalised_psi_for_extruded_boundary,
+    get_psi_for_boundary,
+    get_psi_for_extruded_boundary,
+)
 from .miller import create_miller_boundary
 from .print import print_starwall_wall_file
 
@@ -24,6 +30,10 @@ __all__ = [
     "create_boundary_from_fourier_2d",
     "create_miller_boundary",
     "find_flux_surface",
+    "get_psi_for_boundary",
+    "get_normalised_psi_for_boundary",
+    "get_psi_for_extruded_boundary",
+    "get_normalised_psi_for_extruded_boundary",
     "adjust_boundary_psi_to_match_flux_surface",
     "adjust_boundary_RZ_to_match_flux_surface",
     "print_starwall_wall_file",
