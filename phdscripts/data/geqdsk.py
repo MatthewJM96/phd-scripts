@@ -72,3 +72,11 @@ class G_EQDSK(dict):
         return (spline(R, Z).tolist()[0][0] - self["psi_mag"]) / (
             self["psi_bnd"] - self["psi_mag"]
         )
+
+    def holds_point(self, point: Tuple[float, float]) -> bool:
+        return (
+            point[0] < self["origin"][0]
+            or point[0] > self["origin"][0] + self["dimensions"][0]
+            or point[1] < self["origin"][1] - self["dimensions"][1] / 2.0
+            or point[1] > self["origin"][1] + self["dimensions"][1] / 2.0
+        )
