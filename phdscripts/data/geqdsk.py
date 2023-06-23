@@ -56,7 +56,7 @@ class G_EQDSK(dict):
             Z = R[1]
             R = R[0]
 
-        return spline(R, Z)
+        return spline(R, Z).tolist()[0][0]
 
     def psi_normalised_at(
         self, R: Union[float, Tuple[float, float]], Z: Optional[float] = None
@@ -69,4 +69,6 @@ class G_EQDSK(dict):
             Z = R[1]
             R = R[0]
 
-        return (spline(R, Z) - self["psi_mag"]) / (self["psi_bnd"] - self["psi_mag"])
+        return (spline(R, Z).tolist()[0][0] - self["psi_mag"]) / (
+            self["psi_bnd"] - self["psi_mag"]
+        )
