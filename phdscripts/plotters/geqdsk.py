@@ -3,7 +3,7 @@ from matplotlib import pyplot as plt
 from phdscripts.data import G_EQDSK
 
 # Fitz 2018
-# Taken from plotter script provided by Alexandre Fils
+# Taken from plotter script provided by Alexandre Fil
 
 
 def plot_geqdsk(geqdsk: G_EQDSK) -> None:
