@@ -19,6 +19,7 @@ from .geqdsk import (
 )
 from .miller import create_miller_boundary
 from .print import print_starwall_wall_file
+from .reorder_ordered import reorder_ordered_boundary
 
 __all__ = [
     "extrude_normal",
@@ -37,4 +38,5 @@ __all__ = [
     "adjust_boundary_psi_to_match_flux_surface",
     "adjust_boundary_RZ_to_match_flux_surface",
     "print_starwall_wall_file",
+    "reorder_ordered_boundary",
 ]
