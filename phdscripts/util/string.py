@@ -17,6 +17,10 @@ _CAPTURED_STANDARD_NUMBER_PATTERN = (
 )
 
 
+def _OPTIONAL_FORTRAN_NUMBERS_PATTERN(list_separator: str) -> str:
+    return rf"{_FORTRAN_NUMBER_PATTERN}(?:{list_separator}{_FORTRAN_NUMBER_PATTERN})*"
+
+
 def convert_standard_to_fortran_bool(target: bool) -> str:
     """
     Replaces a standard notation bool with an equivalent Fortran-compatible bool
@@ -59,6 +63,23 @@ def has_parameterised_fortran_number(
     escaped_param_name = regex.escape(param_name)
 
     return has_fortran_number(rf"{escaped_param_name}{intermediate}@", target)
+
+
+def has_parameterised_fortran_numbers(
+    param_name: str,
+    target: str,
+    intermediate: str = " *= *",
+    list_separator: str = ", *",
+) -> bool:
+    escaped_param_name = regex.escape(param_name)
+
+    return has_fortran_number(
+        (
+            rf"{escaped_param_name}{intermediate}"
+            rf"{_OPTIONAL_FORTRAN_NUMBERS_PATTERN(list_separator)}"
+        ),
+        target,
+    )
 
 
 def replace_decimal_number(pattern: str, sub: str, target: str) -> str:
@@ -177,16 +198,6 @@ def replace_fortran_number(pattern: str, sub: Union[int, float], target: str) ->
     )
 
 
-def replace_fortran_numbers(
-    pattern: str, subs: List[Union[int, float]], target: str
-) -> str:
-    for sub in subs:
-        target = replace_fortran_number(pattern, sub, target)
-        pattern = pattern.replace("@", sub, 1)
-
-    return target
-
-
 def replace_parameterised_fortran_number(
     param_name: str, sub: Union[int, float], target: str, intermediate: str = " *= *"
 ) -> str:
@@ -195,6 +206,35 @@ def replace_parameterised_fortran_number(
     return replace_fortran_number(
         rf"{_PARAM_START}{escaped_param_name}{intermediate}\K@",
         sub,
+        target,
+    )
+
+
+def replace_parameterised_fortran_numbers(
+    param_name: str,
+    subs: List[Union[int, float]],
+    target: str,
+    intermediate: str = " *= *",
+    list_separator: str = ", *",
+    list_begin: str = "",
+) -> str:
+    if len(subs) == 0:
+        return target
+
+    escaped_param_name = regex.escape(param_name)
+
+    pattern = (
+        rf"{_PARAM_START}{escaped_param_name}{intermediate}{list_begin}"
+        rf"{_OPTIONAL_FORTRAN_NUMBERS_PATTERN(list_separator)}"
+    )
+
+    sub_str = f"{param_name} = {subs[0]}"
+    for sub in subs[1:]:
+        sub_str += f", {sub}"
+
+    return regex.sub(
+        pattern,
+        sub_str,
         target,
     )
 

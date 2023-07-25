@@ -12,12 +12,12 @@ from .string import (
     replace_fortran_bool,
     replace_fortran_number,
     replace_fortran_number_in_list,
-    replace_fortran_numbers,
     replace_parameterised_decimal_number,
     replace_parameterised_decimal_number_in_list,
     replace_parameterised_fortran_bool,
     replace_parameterised_fortran_number,
     replace_parameterised_fortran_number_in_list,
+    replace_parameterised_fortran_numbers,
 )
 
 __all__ = [
@@ -40,4 +40,5 @@ __all__ = [
     "replace_parameterised_fortran_bool",
     "replace_parameterised_fortran_number",
     "replace_parameterised_fortran_number_in_list",
+    "replace_parameterised_fortran_numbers",
 ]
