@@ -3,8 +3,9 @@ Contains the general workflow for Jorek runs.
 """
 
 from distutils.dir_util import copy_tree
+from os.path import exists
 from os.path import join as join_path
-from typing import Optional
+from typing import List, Optional, Tuple
 from uuid import uuid4
 
 from phdscripts.boundary import decomp_fourier_2d, extrude
@@ -41,6 +42,9 @@ JOREK_INIT_INPUT = "input_jorek_init"
 JOREK_RUN_INPUT = "input_jorek_run"
 JOREK_RESUME_INPUT = "input_jorek_resume"
 STARWALL_INPUT = "input_starwall"
+
+JOREK_RZPSI_INPUT = "rz_boundary.txt"
+JOREK_EXTRUDE_FROM_INPUT = "extrude_from_boundary.txt"
 
 
 class JorekWorkflow(Workflow):
@@ -121,6 +125,12 @@ class JorekWorkflow(Workflow):
 
     def _input_jorek_resume(self, name: str) -> str:
         return join_path(self._working_dir(name), JOREK_RESUME_INPUT)
+
+    def _input_jorek_rz_psi(self, name: str) -> str:
+        return join_path(self._working_dir(name), JOREK_RZPSI_INPUT)
+
+    def _input_jorek_extrude_from(self, name: str) -> str:
+        return join_path(self._working_dir(name), JOREK_EXTRUDE_FROM_INPUT)
 
     def _canonical_param_set_name(self, param_set: dict) -> str:
         return uuid4()
@@ -290,7 +300,23 @@ class JorekWorkflow(Workflow):
         with open(output_filepath, "w") as f:
             f.write(jorek_input)
 
-    def _calculate_wall_geometry(params: dict) -> None:
+    def _read_extrude_from(self, name: str) -> List[Tuple[float, float]]:
+        extrude_from = []
+        with open(self._input_jorek_extrude_from(name), "r") as f:
+            for line in f.readlines():
+                parts = line.split()
+                extrude_from.append((float(parts[0]), float(parts[1])))
+        return extrude_from
+
+    def _read_rz_psi(self, name: str) -> List[Tuple[float, float, float]]:
+        rz_psi = []
+        with open(self._input_jorek_rz_psi(name), "r") as f:
+            for line in f.readlines():
+                parts = line.split()
+                rz_psi.append((float(parts[0]), float(parts[1]), float(parts[2])))
+        return rz_psi
+
+    def _calculate_wall_geometry(self, name: str, params: dict) -> None:
         distance = params["wall_distance"]
         method = "scale"
 
@@ -314,6 +340,19 @@ class JorekWorkflow(Workflow):
         # geometry parameters.
         boundary = []
 
+        if exists(self._input_jorek_extrude_from(name)):
+            boundary = self._read_extrude_from(name)
+        elif exists(self._input_jorek_rz_psi(name)):
+            # Drop psi information.
+            boundary = [(x[0], x[1]) for x in self._read_rz_psi(name)]
+        else:
+            print(
+                (
+                    "Trying to prepare a case with extruded wall, but no boundary"
+                    " provided to extrude from."
+                )
+            )
+
         # Do extrusion and get Fourier coefficients.
         wall_boundary = extrude(method, boundary, distance)
 
@@ -328,7 +367,7 @@ class JorekWorkflow(Workflow):
         params = {**param_set, **self._starwall_params}
 
         if "wall_distance" in params.keys():
-            self._calculate_wall_geometry(params)
+            self._calculate_wall_geometry(name, params)
 
         with open(self._input_starwall(name), "r") as f:
             starwall_input = f.read()
