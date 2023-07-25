@@ -7,6 +7,7 @@ from os.path import join as join_path
 from typing import Optional
 from uuid import uuid4
 
+from phdscripts.boundary import decomp_fourier_2d, extrude
 from phdscripts.util import (
     convert_standard_to_fortran_number,
     has_parameterised_fortran_bool,
@@ -289,8 +290,45 @@ class JorekWorkflow(Workflow):
         with open(output_filepath, "w") as f:
             f.write(jorek_input)
 
+    def _calculate_wall_geometry(params: dict) -> None:
+        distance = params["wall_distance"]
+        method = "scale"
+
+        if "wall_extrude_method" in params.keys():
+            method = params["wall_extrude_method"]
+
+        modes = (999, -999)
+        if "m_w" in params.keys():
+            for m in params["m_w"]:
+                if m < 0 and m < modes[0]:
+                    modes = (m, modes[1])
+                if m > 0 and m > modes[1]:
+                    modes = (modes[0], m)
+        else:
+            modes = (-99, 99)
+            params["mn_w"] = 199
+            params["m_w"] = [x for x in range(-99, 100, 1)]
+            params["n_w"] = [0 for _ in range(-99, 100, 1)]
+
+        # Read extrude_from date file, or else rz_boundary.txt, or else JOREK namelist
+        # geometry parameters.
+        boundary = []
+
+        # Do extrusion and get Fourier coefficients.
+        wall_boundary = extrude(method, boundary, distance)
+
+        fourier_coeffs = decomp_fourier_2d(wall_boundary, modes)
+
+        params["rc_w"] = fourier_coeffs[0]
+        params["rs_w"] = fourier_coeffs[1]
+        params["zc_w"] = fourier_coeffs[2]
+        params["zs_w"] = fourier_coeffs[3]
+
     def _update_starwall_input_file(self, name: str, param_set: dict) -> None:
         params = {**param_set, **self._starwall_params}
+
+        if "wall_distance" in params.keys():
+            self._calculate_wall_geometry(params)
 
         with open(self._input_starwall(name), "r") as f:
             starwall_input = f.read()
