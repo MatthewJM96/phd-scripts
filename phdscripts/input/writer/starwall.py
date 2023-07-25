@@ -1,7 +1,7 @@
 from os.path import join
 from typing import Callable, Dict, List, Tuple, Union
 
-from phdscripts.boundary import decomp_fourier_2d, extrude_normal, extrude_scale
+from phdscripts.boundary import decomp_fourier_2d, extrude
 from phdscripts.validate import validate_required_keys
 
 REQUIRED_PARAMETERS = set({"R", "Z"})
@@ -33,26 +33,17 @@ def write_starwall_files(
     for idx in range(len(parameters["R"])):
         points.append((parameters["R"][idx], parameters["Z"][idx]))
 
-    extruded_points = None
-    if wall_distance != 0.0:
-        if type(extrude_method) is str:
-            if extrude_method == "scale":
-                extruded_points = extrude_scale(points, wall_distance)
-            elif extrude_method == "normal":
-                extruded_points = extrude_normal(points, wall_distance)
-        else:
-            extruded_points = extrude_method(points, wall_distance)
-
-        if extruded_points is None:
-            print(
-                (
-                    f"    Wall extrusion method was not recognised: {extrude_method}.\n"
-                    "        Methods accepted are:\n"
-                    "            - scale\n"
-                    "            - normal\n"
-                )
+    extruded_points = extrude(extrude_method, points, wall_distance)
+    if len(extruded_points) == 0 and len(points) != 0:
+        print(
+            (
+                f"    Wall extrusion method was not recognised: {extrude_method}.\n"
+                "        Methods accepted are:\n"
+                "            - scale\n"
+                "            - normal\n"
             )
-            return False
+        )
+        return False
 
     fourier_coeffs = decomp_fourier_2d(extruded_points, modes)
 

@@ -1,3 +1,4 @@
+from .extrude import extrude
 from .extrude_normal import extrude_normal
 from .extrude_scale import extrude_scale, extrude_scale_from_centre
 from .fluxsurface import (
@@ -22,6 +23,7 @@ from .print import print_starwall_wall_file
 from .reorder_ordered import reorder_ordered_boundary
 
 __all__ = [
+    "extrude",
     "extrude_normal",
     "extrude_scale",
     "extrude_scale_from_centre",
