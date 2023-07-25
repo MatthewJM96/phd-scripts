@@ -11,9 +11,10 @@ from phdscripts.util import (
     convert_standard_to_fortran_number,
     has_parameterised_fortran_bool,
     has_parameterised_fortran_number,
-    replace_parameterised_decimal_number_in_list,
+    has_parameterised_fortran_numbers,
     replace_parameterised_fortran_bool,
     replace_parameterised_fortran_number,
+    replace_parameterised_fortran_numbers,
 )
 
 from .. import Workflow, WorkflowSettings
@@ -195,12 +196,38 @@ class JorekWorkflow(Workflow):
             "02:00:00",
         )
 
+    def _jorek_param_subset(self, param_set: dict) -> dict:
+        subset = {}
+
+        for key in param_set.keys():
+            if len(key) <= len("jorek//"):
+                continue
+
+            if key[:7] == "jorek//":
+                subset[key[7:]] = param_set[key]
+
+        return subset
+
+    def _starwall_param_subset(self, param_set: dict) -> dict:
+        subset = {}
+
+        for key in param_set.keys():
+            if len(key) <= len("starwall//"):
+                continue
+
+            if key[:7] == "starwall//":
+                subset[key[7:]] = param_set[key]
+
+        return subset
+
     def _build_working_directory(self, name: str, param_set: dict) -> None:
         copy_tree(self._template_dir, self._working_dir(name), preserve_symlinks=True)
 
-        self._write_jorek_input_files(name, param_set)
+        self._write_jorek_input_files(name, self._jorek_param_subset(param_set))
         if not self._resume and self._starwall_exec is not None:
-            self._update_starwall_input_file(name, param_set)
+            self._update_starwall_input_file(
+                name, self._starwall_param_subset(param_set)
+            )
 
     def _write_jorek_input_files(self, name: str, param_set: dict) -> None:
         params = {**param_set, **self._jorek_params}
@@ -238,9 +265,6 @@ class JorekWorkflow(Workflow):
             jorek_input = f.read()
 
         for param, value in param_set.items():
-            if param == "wall_distance":
-                continue
-
             # TODO(Matthew): handle non-number cases! (e.g. bool flags)
 
             if isinstance(value, bool):
@@ -266,17 +290,27 @@ class JorekWorkflow(Workflow):
             f.write(jorek_input)
 
     def _update_starwall_input_file(self, name: str, param_set: dict) -> None:
+        params = {**param_set, **self._starwall_params}
+
         with open(self._input_starwall(name), "r") as f:
             starwall_input = f.read()
 
-        # TODO(Matthew): support other parameters than wall distance.
-
-        starwall_input = replace_parameterised_decimal_number_in_list(
-            "rc_w", 1, str(param_set["wall_distance"]), starwall_input
-        )
-        starwall_input = replace_parameterised_decimal_number_in_list(
-            "zs_w", 1, str(param_set["wall_distance"]), starwall_input
-        )
+        for param, value in params.items():
+            if isinstance(value, bool):
+                if has_parameterised_fortran_bool(param, starwall_input):
+                    starwall_input = replace_parameterised_fortran_bool(
+                        param, value, starwall_input
+                    )
+            elif isinstance(value, (float, int)):
+                if has_parameterised_fortran_number(param, starwall_input):
+                    starwall_input = replace_parameterised_fortran_number(
+                        param, value, starwall_input
+                    )
+            elif isinstance(value, list):
+                if has_parameterised_fortran_numbers(param, starwall_input):
+                    starwall_input = replace_parameterised_fortran_numbers(
+                        param, value, starwall_input
+                    )
 
         with open(self._input_starwall(name), "w") as f:
             f.write(starwall_input)
