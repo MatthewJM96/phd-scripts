@@ -5,6 +5,7 @@ Contains the general workflow for Jorek runs.
 from distutils.dir_util import copy_tree
 from os.path import join as join_path
 from typing import Optional
+from uuid import uuid4
 
 from phdscripts.util import (
     convert_standard_to_fortran_number,
@@ -120,17 +121,7 @@ class JorekWorkflow(Workflow):
         return join_path(self._working_dir(name), JOREK_RESUME_INPUT)
 
     def _canonical_param_set_name(self, param_set: dict) -> str:
-        # TODO(Matthew): Do we prefer to use something like uuid? This might make
-        #                rather ridiculous directory names. Could provide a script
-        #                that lists (with filtering/sorting) the runs and will move
-        #                command line to the apporpriate directory by index choice.
-
-        canonical_param_set_name = ""
-
-        for name, value in param_set.items():
-            canonical_param_set_name += name + "_" + str(value) + "___"
-
-        return canonical_param_set_name
+        return uuid4()
 
     def _jorek_init_job_script(self) -> str:
         return join_path(self._root_dir(), JOREK_INIT_JOB_SCRIPT)
