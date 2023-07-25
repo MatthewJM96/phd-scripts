@@ -6,7 +6,7 @@ from numpy import linspace, ndarray, zeros
 
 from phdscripts.data import G_EQDSK
 
-FORTRAN_INTEGERS_AND_FLOATS_PATTERN = r"\s?([-]?[0-9]+(\.[0-9]+)?(E[+-][0-9]+)?)"
+FORTRAN_INTEGERS_AND_FLOATS_PATTERN = r"\s?([-]?[0-9]+(\.[0-9]+)?([eE][+-][0-9]+)?)"
 
 
 def __parse_header(header: str) -> Tuple[bool, str, int, int]:
