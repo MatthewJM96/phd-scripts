@@ -3,24 +3,21 @@ Contains the general workflow for Jorek runs.
 """
 
 from distutils.dir_util import copy_tree
-from os.path import exists
 from os.path import join as join_path
-from typing import List, Optional, Tuple
+from typing import Optional
 from uuid import uuid4
 
-from phdscripts.boundary import decomp_fourier_2d, extrude
 from phdscripts.util import (
     convert_standard_to_fortran_number,
     has_parameterised_fortran_bool,
     has_parameterised_fortran_number,
-    has_parameterised_fortran_numbers,
     replace_parameterised_fortran_bool,
     replace_parameterised_fortran_number,
-    replace_parameterised_fortran_numbers,
 )
 
 from .. import Workflow, WorkflowSettings
 from .job_script import write_jorek_job_script, write_starwall_job_script
+from .input_file import update_starwall_input_file
 
 JOREK_INIT_JOB_SCRIPT = "jorek_init.job.run"
 JOREK_RUN_JOB_SCRIPT = "jorek_run.job.run"
@@ -236,8 +233,11 @@ class JorekWorkflow(Workflow):
 
         self._write_jorek_input_files(name, self._jorek_param_subset(param_set))
         if not self._resume and self._starwall_exec is not None:
-            self._update_starwall_input_file(
-                name, self._starwall_param_subset(param_set)
+            update_starwall_input_file(
+                self._input_starwall(name),
+                self._input_jorek_extrude_from(name),
+                self._input_jorek_rz_psi(name),
+                {**self._starwall_param_subset(param_set), **self._starwall_params}
             )
 
     def _write_jorek_input_files(self, name: str, param_set: dict) -> None:
@@ -299,95 +299,3 @@ class JorekWorkflow(Workflow):
 
         with open(output_filepath, "w") as f:
             f.write(jorek_input)
-
-    def _read_extrude_from(self, name: str) -> List[Tuple[float, float]]:
-        extrude_from = []
-        with open(self._input_jorek_extrude_from(name), "r") as f:
-            for line in f.readlines():
-                parts = line.split()
-                extrude_from.append((float(parts[0]), float(parts[1])))
-        return extrude_from
-
-    def _read_rz_psi(self, name: str) -> List[Tuple[float, float, float]]:
-        rz_psi = []
-        with open(self._input_jorek_rz_psi(name), "r") as f:
-            for line in f.readlines():
-                parts = line.split()
-                rz_psi.append((float(parts[0]), float(parts[1]), float(parts[2])))
-        return rz_psi
-
-    def _calculate_wall_geometry(self, name: str, params: dict) -> None:
-        distance = params["wall_distance"]
-        method = "scale"
-
-        if "wall_extrude_method" in params.keys():
-            method = params["wall_extrude_method"]
-
-        modes = (999, -999)
-        if "m_w" in params.keys():
-            for m in params["m_w"]:
-                if m < 0 and m < modes[0]:
-                    modes = (m, modes[1])
-                if m > 0 and m > modes[1]:
-                    modes = (modes[0], m)
-        else:
-            modes = (-99, 99)
-            params["mn_w"] = 199
-            params["m_w"] = [x for x in range(-99, 100, 1)]
-            params["n_w"] = [0 for _ in range(-99, 100, 1)]
-
-        # Read extrude_from date file, or else rz_boundary.txt, or else JOREK namelist
-        # geometry parameters.
-        boundary = []
-
-        if exists(self._input_jorek_extrude_from(name)):
-            boundary = self._read_extrude_from(name)
-        elif exists(self._input_jorek_rz_psi(name)):
-            # Drop psi information.
-            boundary = [(x[0], x[1]) for x in self._read_rz_psi(name)]
-        else:
-            print(
-                (
-                    "Trying to prepare a case with extruded wall, but no boundary"
-                    " provided to extrude from."
-                )
-            )
-
-        # Do extrusion and get Fourier coefficients.
-        wall_boundary = extrude(method, boundary, distance)
-
-        fourier_coeffs = decomp_fourier_2d(wall_boundary, modes)
-
-        params["rc_w"] = fourier_coeffs[0]
-        params["rs_w"] = fourier_coeffs[1]
-        params["zc_w"] = fourier_coeffs[2]
-        params["zs_w"] = fourier_coeffs[3]
-
-    def _update_starwall_input_file(self, name: str, param_set: dict) -> None:
-        params = {**param_set, **self._starwall_params}
-
-        if "wall_distance" in params.keys():
-            self._calculate_wall_geometry(name, params)
-
-        with open(self._input_starwall(name), "r") as f:
-            starwall_input = f.read()
-
-        for param, value in params.items():
-            if isinstance(value, bool):
-                if has_parameterised_fortran_bool(param, starwall_input):
-                    starwall_input = replace_parameterised_fortran_bool(
-                        param, value, starwall_input
-                    )
-            elif isinstance(value, (float, int)):
-                if has_parameterised_fortran_number(param, starwall_input):
-                    starwall_input = replace_parameterised_fortran_number(
-                        param, value, starwall_input
-                    )
-            elif isinstance(value, list):
-                if has_parameterised_fortran_numbers(param, starwall_input):
-                    starwall_input = replace_parameterised_fortran_numbers(
-                        param, value, starwall_input
-                    )
-
-        with open(self._input_starwall(name), "w") as f:
-            f.write(starwall_input)

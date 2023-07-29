@@ -19,6 +19,7 @@ from .string import (
     replace_parameterised_fortran_number,
     replace_parameterised_fortran_number_in_list,
     replace_parameterised_fortran_numbers,
+    replace_fortran_parameter,
 )
 
 __all__ = [
@@ -43,4 +44,5 @@ __all__ = [
     "replace_parameterised_fortran_number",
     "replace_parameterised_fortran_number_in_list",
     "replace_parameterised_fortran_numbers",
+    "replace_fortran_parameter",
 ]
