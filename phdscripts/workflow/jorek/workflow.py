@@ -7,17 +7,9 @@ from os.path import join as join_path
 from typing import Optional
 from uuid import uuid4
 
-from phdscripts.util import (
-    convert_standard_to_fortran_number,
-    has_parameterised_fortran_bool,
-    has_parameterised_fortran_number,
-    replace_parameterised_fortran_bool,
-    replace_parameterised_fortran_number,
-)
-
 from .. import Workflow, WorkflowSettings
-from .job_script import write_jorek_job_script, write_starwall_job_script
 from .input_file import update_starwall_input_file
+from .job_script import write_jorek_job_script, write_starwall_job_script
 
 JOREK_INIT_JOB_SCRIPT = "jorek_init.job.run"
 JOREK_RUN_JOB_SCRIPT = "jorek_run.job.run"
@@ -64,14 +56,14 @@ class JorekWorkflow(Workflow):
     ):
         super().__init__(run_id, settings)
 
-        self._template_dir = template_dir
-        self._jorek_exec = jorek_exec
-        self._resume = resume
-        self._timestep = timestep
-        self._timestep_count = timestep_count
-        self._jorek_params = jorek_params
-        self._starwall_exec = starwall_exec
-        self._starwall_params = starwall_params
+        self.template_dir = template_dir
+        self.jorek_exec = jorek_exec
+        self.resume = resume
+        self.timestep = timestep
+        self.timestep_count = timestep_count
+        self.jorek_params = jorek_params
+        self.starwall_exec = starwall_exec
+        self.starwall_params = starwall_params
 
     def run(self, run_after: Optional[str] = None) -> str:
         """
@@ -79,7 +71,7 @@ class JorekWorkflow(Workflow):
         last-scheduled jobs so as to allow other workflows to follow on from this
         workflow.
         """
-        if not self._resume and self._starwall_exec is not None:
+        if not self.resume and self.starwall_exec is not None:
             # JOREK Initialisation
             jorek_init_id = self.settings.scheduler.array_batch_jobs(
                 self._jorek_init_job_script(),
@@ -101,7 +93,7 @@ class JorekWorkflow(Workflow):
         # JOREK Run
         return self.settings.scheduler.array_batch_jobs(
             self._jorek_resume_job_script()
-            if self._resume
+            if self.resume
             else self._jorek_run_job_script(),
             self._job_instances,
             self.settings.parallel_jobs,
@@ -150,7 +142,7 @@ class JorekWorkflow(Workflow):
         #                  As a case in point: this assumes free boundary with two
         #                  steps, and being ran as an array job via SLURM.
 
-        if not self._resume and self._starwall_exec is not None:
+        if not self.resume and self.starwall_exec is not None:
             ########################
             # JOREK Initialisation #
             ########################
@@ -160,7 +152,7 @@ class JorekWorkflow(Workflow):
                 self._jorek_init_job_script(),
                 self._param_set_register(),
                 self._root_dir(),
-                self._jorek_exec,
+                self.jorek_exec,
                 JOREK_INIT_INPUT,
                 JOREK_INIT_JOB_OUT,
                 JOREK_INIT_JOB_ERR,
@@ -177,7 +169,7 @@ class JorekWorkflow(Workflow):
                 self._starwall_job_script(),
                 self._param_set_register(),
                 self._root_dir(),
-                self._starwall_exec,
+                self.starwall_exec,
                 STARWALL_INPUT,
                 STARWALL_JOB_OUT,
                 STARWALL_JOB_ERR,
@@ -192,15 +184,15 @@ class JorekWorkflow(Workflow):
             self.run_id,
             self.settings.scheduler,
             self._jorek_resume_job_script()
-            if self._resume
+            if self.resume
             else self._jorek_run_job_script(),
             self._param_set_register(),
             self._root_dir(),
-            self._jorek_exec,
-            JOREK_RESUME_INPUT if self._resume else JOREK_RUN_INPUT,
-            JOREK_RESUME_JOB_OUT if self._resume else JOREK_RUN_JOB_OUT,
-            JOREK_RESUME_JOB_ERR if self._resume else JOREK_RUN_JOB_ERR,
-            "jorek_resume" if self._resume else "jorek_run",
+            self.jorek_exec,
+            JOREK_RESUME_INPUT if self.resume else JOREK_RUN_INPUT,
+            JOREK_RESUME_JOB_OUT if self.resume else JOREK_RUN_JOB_OUT,
+            JOREK_RESUME_JOB_ERR if self.resume else JOREK_RUN_JOB_ERR,
+            "jorek_resume" if self.resume else "jorek_run",
             "02:00:00",
         )
 
@@ -229,20 +221,20 @@ class JorekWorkflow(Workflow):
         return subset
 
     def _build_working_directory(self, name: str, param_set: dict) -> None:
-        copy_tree(self._template_dir, self._working_dir(name), preserve_symlinks=True)
+        copy_tree(self.template_dir, self._working_dir(name), preserve_symlinks=True)
 
         self._write_jorek_input_files(name, self._jorek_param_subset(param_set))
-        if not self._resume and self._starwall_exec is not None:
+        if not self.resume and self.starwall_exec is not None:
             update_starwall_input_file(
                 self._input_starwall(name),
                 self._input_jorek_extrude_from(name),
                 self._input_jorek_rz_psi(name),
-                {**self._starwall_param_subset(param_set), **self._starwall_params}
+                {**self._starwall_param_subset(param_set), **self._starwall_params},
             )
 
     def _write_jorek_input_files(self, name: str, param_set: dict) -> None:
         params = {**param_set, **self._jorek_params}
-        if not self._resume:
+        if not self.resume:
             self._write_jorek_input_file(
                 name,
                 self._input_jorek_init(name),
@@ -268,34 +260,3 @@ class JorekWorkflow(Workflow):
                 self._input_jorek_resume(name),
                 {**resume_params, "restart": True},
             )
-
-    def _write_jorek_input_file(
-        self, name: str, output_filepath: str, param_set: dict
-    ) -> None:
-        with open(self._input_jorek(name), "r") as f:
-            jorek_input = f.read()
-
-        for param, value in param_set.items():
-            # TODO(Matthew): handle non-number cases! (e.g. bool flags)
-
-            if isinstance(value, bool):
-                if has_parameterised_fortran_bool(param, jorek_input):
-                    jorek_input = replace_parameterised_fortran_bool(
-                        param, value, jorek_input
-                    )
-            elif isinstance(value, (float, int)):
-                if has_parameterised_fortran_number(param, jorek_input):
-                    jorek_input = replace_parameterised_fortran_number(
-                        param, value, jorek_input
-                    )
-                else:
-                    # TODO(Matthew): this actually breaks for now as there is a
-                    #                structure to JOREK inputs that we need to handle
-                    #                (i.e. closing "/" line).
-                    jorek_input += (
-                        f"\n{param} = "
-                        f"{convert_standard_to_fortran_number(str(value))}"
-                    )
-
-        with open(output_filepath, "w") as f:
-            f.write(jorek_input)
