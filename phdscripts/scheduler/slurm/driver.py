@@ -47,6 +47,7 @@ class SlurmDriver(SchedulerDriver):
         job_count: int,
         jobs_parallel: int = 1,
         array_dependency: Optional[str] = None,
+        blocking: bool = False,
     ) -> str:
         """
         Schedules an array of jobs and sends them to the scheduler to be ran in batches.
@@ -59,8 +60,14 @@ class SlurmDriver(SchedulerDriver):
             array_flag += f"%{jobs_parallel}"
         cmd.append(array_flag)
 
+        # TODO(Matthew): can we return sub array job IDs such that we can run e.g.
+        #                staged JOREK workflows with time evolution following the needed
+        #                STARWALL run?
         if array_dependency is not None:
-            cmd.append(f"--dependency=aftercorr:{array_dependency}")
+            if blocking:
+                cmd.append(f"--dependency=afterok:{array_dependency}")
+            else:
+                cmd.append(f"--dependency=aftercorr:{array_dependency}")
 
         cmd.append(f"{job_script}")
 

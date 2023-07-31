@@ -8,7 +8,7 @@ from os import makedirs
 from os.path import isdir
 from os.path import join as join_path
 from re import fullmatch
-from typing import Dict, Optional
+from typing import Dict, List, Optional, Union
 
 from phdscripts.parameter_pack import ParameterPack
 from phdscripts.scheduler import SchedulerDriver
@@ -57,23 +57,26 @@ class Workflow(ABC):
 
         self.run_id = run_id
 
-    def setup(self, param_pack: ParameterPack):
+    def setup(self, param_pack: Union[ParameterPack, List[dict]]):
         self._build_root_working_directory()
 
         self._write_job_scripts()
 
-        param_sets: Dict[str, str] = {}
+        serialised_param_sets: Dict[str, str] = {}
 
         self._job_instances = 0
         for param_set in param_pack:
-            name = self._canonical_param_set_name(param_set)
+            name = self._register_param_set(param_set)
 
-            param_sets[name] = str(param_set)
+            if name not in serialised_param_sets:
+                serialised_param_sets[name] = str(param_set)
 
-            self._build_working_directory(name, param_set)
-            self._job_instances += 1
+                self._build_working_directory(name, param_set)
+                self._job_instances += 1
 
-        self._write_param_set_register(param_sets)
+        self._write_param_set_register(serialised_param_sets)
+
+        self._complete_setup()
 
     @abstractmethod
     def run(self, run_after: Optional[str] = None) -> str:
@@ -120,7 +123,10 @@ class Workflow(ABC):
             f.write(param_set_register)
 
     @abstractmethod
-    def _canonical_param_set_name(self, param_set: dict) -> str:
+    def _register_param_set(self, param_set: dict) -> str:
+        pass
+
+    def _complete_setup(self) -> None:
         pass
 
     @abstractmethod

@@ -1,7 +1,7 @@
 from .plot import PlotJorekWorkflow
-from .workflow import JorekWorkflow
+from .basic_workflow import JorekBasicWorkflow
 
 __all__ = [
     "PlotJorekWorkflow",
-    "JorekWorkflow",
+    "JorekBasicWorkflow",
 ]

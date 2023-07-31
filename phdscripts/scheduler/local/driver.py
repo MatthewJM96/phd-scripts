@@ -47,6 +47,7 @@ class LocalDriver(SchedulerDriver):
         job_count: int,
         jobs_parallel: int = 1,
         array_dependency: Optional[str] = None,
+        blocking: bool = False,
     ) -> str:
         """
         Handles running an array of jobs in sequence, locally, as if submitted as an

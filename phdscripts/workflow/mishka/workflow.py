@@ -2,7 +2,7 @@
 Contains the general workflow for Mishka runs.
 """
 
-from distutils.dir_util import copy_tree
+from shutil import copytree
 from os.path import join as join_path
 from typing import Optional
 
@@ -64,7 +64,7 @@ class MishkaWorkflow(Workflow):
     def _input_mishka(self, name: str) -> str:
         return join_path(self._working_dir(name), MISHKA_INPUT)
 
-    def _canonical_param_set_name(self, param_set: dict) -> str:
+    def _register_param_set(self, param_set: dict) -> str:
         # TODO(Matthew): Do we prefer to use something like uuid? This might make
         #                rather ridiculous directory names. Could provide a script
         #                that lists (with filtering/sorting) the runs and will move
@@ -95,7 +95,7 @@ class MishkaWorkflow(Workflow):
         )
 
     def _build_working_directory(self, name: str, param_set: dict) -> None:
-        copy_tree(self._template_dir, self._working_dir(name), preserve_symlinks=True)
+        copytree(self._template_dir, self._working_dir(name), symlinks=True)
 
         params = {**param_set, **self._mishka_params}
 
