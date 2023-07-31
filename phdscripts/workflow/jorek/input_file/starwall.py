@@ -23,7 +23,9 @@ def _read_rz_psi(filepath: str) -> List[Tuple[float, float, float]]:
     return rz_psi
 
 
-def _calculate_wall_geometry(extrude_from_filepath: str, rz_psi_filepath: str, params: dict) -> None:
+def _calculate_wall_geometry(
+    extrude_from_filepath: str, rz_psi_filepath: str, params: dict
+) -> None:
     """
     Calculate wall geometry in STARWALL parameterisation by taking one of two boundaries
     (extrude_from first, and the rz_psi boundary file of JOREK if the former does not
@@ -91,13 +93,18 @@ def _calculate_wall_geometry(extrude_from_filepath: str, rz_psi_filepath: str, p
 
     coeffs = decomp_fourier_2d(wall_boundary, (lowest_mode, highest_mode))
 
-    params["rc_w"] = [ coeffs[idx][0] for idx in range(lowest_mode, highest_mode + 1, 1) ]
-    params["rs_w"] = [ coeffs[idx][1] for idx in range(lowest_mode, highest_mode + 1, 1) ]
-    params["zc_w"] = [ coeffs[idx][2] for idx in range(lowest_mode, highest_mode + 1, 1) ]
-    params["zs_w"] = [ coeffs[idx][3] for idx in range(lowest_mode, highest_mode + 1, 1) ]
+    params["rc_w"] = [coeffs[idx][0] for idx in range(lowest_mode, highest_mode + 1, 1)]
+    params["rs_w"] = [coeffs[idx][1] for idx in range(lowest_mode, highest_mode + 1, 1)]
+    params["zc_w"] = [coeffs[idx][2] for idx in range(lowest_mode, highest_mode + 1, 1)]
+    params["zs_w"] = [coeffs[idx][3] for idx in range(lowest_mode, highest_mode + 1, 1)]
 
 
-def update_starwall_input_file(starwall_filepath: str, extrude_from_filepath: str, rz_psi_filepath: str, params: dict) -> None:
+def update_starwall_input_file(
+    starwall_filepath: str,
+    extrude_from_filepath: str,
+    rz_psi_filepath: str,
+    params: dict,
+) -> None:
     """
     Updates STARWALL input file with parameters provided to this function, in the
     case that a wall distance is supplied, extrusion is performed first.

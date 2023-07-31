@@ -280,16 +280,10 @@ def replace_fortran_number_in_list(
 def replace_fortran_parameter(value: Any, param: str, target: str) -> str:
     if isinstance(value, bool):
         if has_parameterised_fortran_bool(param, target):
-            return replace_parameterised_fortran_bool(
-                param, value, target
-            )
+            return replace_parameterised_fortran_bool(param, value, target)
     elif isinstance(value, (float, int)):
         if has_parameterised_fortran_number(param, target):
-            return replace_parameterised_fortran_number(
-                param, value, target
-            )
+            return replace_parameterised_fortran_number(param, value, target)
     elif isinstance(value, list):
         if has_parameterised_fortran_numbers(param, target):
-            return replace_parameterised_fortran_numbers(
-                param, value, target
-            )
+            return replace_parameterised_fortran_numbers(param, value, target)
