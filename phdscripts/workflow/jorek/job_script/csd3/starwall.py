@@ -18,11 +18,11 @@ def write_starwall_job_script(
     # Set some defaults for nodes, CPUs per task, and number of tasks if these weren't
     # provided.
     if "nodes" not in kwargs:
-        kwargs = {**kwargs, "nodes": 2}
+        kwargs = {**kwargs, "nodes": 4}
     if "cpus_per_task" not in kwargs:
         kwargs = {**kwargs, "cpus_per_task": 1}
     if "ntasks" not in kwargs:
-        kwargs = {**kwargs, "ntasks": 8}
+        kwargs = {**kwargs, "ntasks": 224}
 
     nodes = kwargs["nodes"]
     ntasks = kwargs["ntasks"]
