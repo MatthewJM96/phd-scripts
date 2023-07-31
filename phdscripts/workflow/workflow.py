@@ -17,10 +17,17 @@ PARAM_SET_REGISTER_FILENAME = "param_set_register"
 
 
 class WorkflowSettings:
-    def __init__(self, base_dir: str, parallel_jobs: int, scheduler: SchedulerDriver):
+    def __init__(
+        self,
+        base_dir: str,
+        parallel_jobs: int,
+        machine: str,
+        scheduler: SchedulerDriver,
+    ):
         self.base_dir = base_dir
-        self.scheduler = scheduler
         self.parallel_jobs = parallel_jobs
+        self.machine = machine
+        self.scheduler = scheduler
 
 
 class Workflow(ABC):
@@ -91,6 +98,18 @@ class Workflow(ABC):
 
     def _build_root_working_directory(self) -> None:
         makedirs(self._root_dir(), exist_ok=True)
+
+    def _param_namespace(self, namespace: str, param_set: dict) -> dict:
+        subset = {}
+
+        for key in param_set.keys():
+            if len(key) <= len(f"{namespace}//"):
+                continue
+
+            if key[:7] == f"{namespace}//":
+                subset[key[7:]] = param_set[key]
+
+        return subset
 
     def _write_param_set_register(self, param_sets: Dict[str, str]) -> None:
         param_set_register = ""

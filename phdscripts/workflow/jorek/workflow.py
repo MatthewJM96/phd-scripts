@@ -8,28 +8,23 @@ from typing import Optional
 from uuid import uuid4
 
 from .. import Workflow, WorkflowSettings
-from .input_file import update_starwall_input_file
-from .job_script import write_jorek_job_script, write_starwall_job_script
+from .input_file import (
+    update_starwall_input_file,
+    write_fresh_jorek_input_files,
+    write_resuming_jorek_input_files,
+)
+from .job_script import write_job_script
 
-JOREK_INIT_JOB_SCRIPT = "jorek_init.job.run"
-JOREK_RUN_JOB_SCRIPT = "jorek_run.job.run"
-JOREK_RESUME_JOB_SCRIPT = "jorek_resume.job.run"
+JOREK_JOB_SCRIPT = "jorek_%s.job.run"
 STARWALL_JOB_SCRIPT = "starwall.job.run"
 
-JOREK_INIT_JOB_OUT = "jorek_init.job.out"
-JOREK_RUN_JOB_OUT = "jorek_run.job.out"
-JOREK_RESUME_JOB_OUT = "jorek_resume.job.out"
+JOREK_JOB_OUT = "jorek_%s.job.out"
 STARWALL_JOB_OUT = "starwall.job.out"
 
-JOREK_INIT_JOB_ERR = "jorek_init.job.err"
-JOREK_RUN_JOB_ERR = "jorek_run.job.err"
-JOREK_RESUME_JOB_ERR = "jorek_resume.job.err"
+JOREK_JOB_ERR = "jorek_%s.job.err"
 STARWALL_JOB_ERR = "starwall.job.err"
 
-JOREK_TEMPLATE_INPUT = "input_jorek_template"
-JOREK_INIT_INPUT = "input_jorek_init"
-JOREK_RUN_INPUT = "input_jorek_run"
-JOREK_RESUME_INPUT = "input_jorek_resume"
+JOREK_INPUT = "input_jorek_%s"
 STARWALL_INPUT = "input_starwall"
 
 JOREK_RZPSI_INPUT = "rz_boundary.txt"
@@ -101,19 +96,10 @@ class JorekWorkflow(Workflow):
         )
 
     def _input_jorek(self, name: str) -> str:
-        return join_path(self._working_dir(name), JOREK_TEMPLATE_INPUT)
-
-    def _input_jorek_init(self, name: str) -> str:
-        return join_path(self._working_dir(name), JOREK_INIT_INPUT)
+        return join_path(self._working_dir(name), JOREK_INPUT)
 
     def _input_starwall(self, name: str) -> str:
         return join_path(self._working_dir(name), STARWALL_INPUT)
-
-    def _input_jorek_run(self, name: str) -> str:
-        return join_path(self._working_dir(name), JOREK_RUN_INPUT)
-
-    def _input_jorek_resume(self, name: str) -> str:
-        return join_path(self._working_dir(name), JOREK_RESUME_INPUT)
 
     def _input_jorek_rz_psi(self, name: str) -> str:
         return join_path(self._working_dir(name), JOREK_RZPSI_INPUT)
@@ -121,41 +107,32 @@ class JorekWorkflow(Workflow):
     def _input_jorek_extrude_from(self, name: str) -> str:
         return join_path(self._working_dir(name), JOREK_EXTRUDE_FROM_INPUT)
 
-    def _canonical_param_set_name(self, param_set: dict) -> str:
+    def _canonical_param_set_name(self, _: dict) -> str:
         return uuid4()
 
-    def _jorek_init_job_script(self) -> str:
-        return join_path(self._root_dir(), JOREK_INIT_JOB_SCRIPT)
-
-    def _jorek_run_job_script(self) -> str:
-        return join_path(self._root_dir(), JOREK_RUN_JOB_SCRIPT)
-
-    def _jorek_resume_job_script(self) -> str:
-        return join_path(self._root_dir(), JOREK_RESUME_JOB_SCRIPT)
+    def _jorek_job_script(self) -> str:
+        return join_path(self._root_dir(), JOREK_JOB_SCRIPT)
 
     def _starwall_job_script(self) -> str:
         return join_path(self._root_dir(), STARWALL_JOB_SCRIPT)
 
     def _write_job_scripts(self) -> None:
-        # TODO(Matthew): Move this out of here, this is Marconi specific and we would
-        #                rather have this injected by the caller.
-        #                  As a case in point: this assumes free boundary with two
-        #                  steps, and being ran as an array job via SLURM.
-
         if not self.resume and self.starwall_exec is not None:
             ########################
             # JOREK Initialisation #
             ########################
-            write_jorek_job_script(
+            write_job_script(
+                self.machine,
+                "jorek",
                 self.run_id,
                 self.settings.scheduler,
                 self._jorek_init_job_script(),
                 self._param_set_register(),
                 self._root_dir(),
                 self.jorek_exec,
-                JOREK_INIT_INPUT,
-                JOREK_INIT_JOB_OUT,
-                JOREK_INIT_JOB_ERR,
+                JOREK_INPUT % "init",
+                JOREK_JOB_OUT % "init",
+                JOREK_JOB_ERR % "init",
                 "jorek_init",
                 "00:10:00",
             )
@@ -163,7 +140,9 @@ class JorekWorkflow(Workflow):
             ############
             # STARWALL #
             ############
-            write_starwall_job_script(
+            write_job_script(
+                self.machine,
+                "starwall",
                 self.run_id,
                 self.settings.scheduler,
                 self._starwall_job_script(),
@@ -180,7 +159,9 @@ class JorekWorkflow(Workflow):
         ####################
         # JOREK Run/Resume #
         ####################
-        write_jorek_job_script(
+        write_job_script(
+            self.machine,
+            "jorek",
             self.run_id,
             self.settings.scheduler,
             self._jorek_resume_job_script()
@@ -189,74 +170,36 @@ class JorekWorkflow(Workflow):
             self._param_set_register(),
             self._root_dir(),
             self.jorek_exec,
-            JOREK_RESUME_INPUT if self.resume else JOREK_RUN_INPUT,
-            JOREK_RESUME_JOB_OUT if self.resume else JOREK_RUN_JOB_OUT,
-            JOREK_RESUME_JOB_ERR if self.resume else JOREK_RUN_JOB_ERR,
+            JOREK_INPUT % "resume" if self.resume else JOREK_INPUT % "run",
+            JOREK_JOB_OUT % "resume" if self.resume else JOREK_JOB_OUT % "run",
+            JOREK_JOB_ERR % "resume" if self.resume else JOREK_JOB_ERR % "run",
             "jorek_resume" if self.resume else "jorek_run",
             "02:00:00",
         )
 
-    def _jorek_param_subset(self, param_set: dict) -> dict:
-        subset = {}
-
-        for key in param_set.keys():
-            if len(key) <= len("jorek//"):
-                continue
-
-            if key[:7] == "jorek//":
-                subset[key[7:]] = param_set[key]
-
-        return subset
-
-    def _starwall_param_subset(self, param_set: dict) -> dict:
-        subset = {}
-
-        for key in param_set.keys():
-            if len(key) <= len("starwall//"):
-                continue
-
-            if key[:7] == "starwall//":
-                subset[key[7:]] = param_set[key]
-
-        return subset
-
     def _build_working_directory(self, name: str, param_set: dict) -> None:
         copy_tree(self.template_dir, self._working_dir(name), preserve_symlinks=True)
 
-        self._write_jorek_input_files(name, self._jorek_param_subset(param_set))
+        self._write_jorek_input_files(name, self._param_namespace("jorek", param_set))
         if not self.resume and self.starwall_exec is not None:
             update_starwall_input_file(
                 self._input_starwall(name),
                 self._input_jorek_extrude_from(name),
                 self._input_jorek_rz_psi(name),
-                {**self._starwall_param_subset(param_set), **self._starwall_params},
+                {
+                    **self._param_namespace("starwall", param_set),
+                    **self._starwall_params,
+                },
             )
 
     def _write_jorek_input_files(self, name: str, param_set: dict) -> None:
-        params = {**param_set, **self._jorek_params}
-        if not self.resume:
-            self._write_jorek_input_file(
-                name,
-                self._input_jorek_init(name),
-                {**params, "tstep_n": 1.0, "nstep_n": 0},
-            )
+        params = {**self._jorek_params, **param_set}
+        if self._timestep is not None:
+            params = {**params, "tstep_n": self._timestep}
+        if self._timestep_count is not None:
+            params = {**params, "nstep_n": self._timestep_count}
 
-            run_params = params
-            if self._timestep is not None:
-                run_params = {**run_params, "tstep_n": self._timestep}
-            if self._timestep_count is not None:
-                run_params = {**run_params, "nstep_n": self._timestep_count}
-
-            self._write_jorek_input_file(name, self._input_jorek_run(name), run_params)
+        if self.resume:
+            write_resuming_jorek_input_files(self._input_jorek(name), params)
         else:
-            resume_params = params
-            if self._timestep is not None:
-                resume_params = {**resume_params, "tstep_n": self._timestep}
-            if self._timestep_count is not None:
-                resume_params = {**resume_params, "nstep_n": self._timestep_count}
-
-            self._write_jorek_input_file(
-                name,
-                self._input_jorek_resume(name),
-                {**resume_params, "restart": True},
-            )
+            write_fresh_jorek_input_files(self._input_jorek(name), params)
