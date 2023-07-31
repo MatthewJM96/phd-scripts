@@ -126,7 +126,7 @@ class JorekWorkflow(Workflow):
                 "jorek",
                 self.run_id,
                 self.settings.scheduler,
-                self._jorek_init_job_script(),
+                self._jorek_job_script() % "init",
                 self._param_set_register(),
                 self._root_dir(),
                 self.jorek_exec,
@@ -153,7 +153,7 @@ class JorekWorkflow(Workflow):
                 STARWALL_JOB_OUT,
                 STARWALL_JOB_ERR,
                 "starwall",
-                "00:40:00",
+                "02:00:00",
             )
 
         ####################
@@ -164,9 +164,9 @@ class JorekWorkflow(Workflow):
             "jorek",
             self.run_id,
             self.settings.scheduler,
-            self._jorek_resume_job_script()
+            self._jorek_job_script() % "resume"
             if self.resume
-            else self._jorek_run_job_script(),
+            else self._jorek_job_script() % "run",
             self._param_set_register(),
             self._root_dir(),
             self.jorek_exec,
@@ -174,7 +174,7 @@ class JorekWorkflow(Workflow):
             JOREK_JOB_OUT % "resume" if self.resume else JOREK_JOB_OUT % "run",
             JOREK_JOB_ERR % "resume" if self.resume else JOREK_JOB_ERR % "run",
             "jorek_resume" if self.resume else "jorek_run",
-            "02:00:00",
+            "04:00:00",
         )
 
     def _build_working_directory(self, name: str, param_set: dict) -> None:
