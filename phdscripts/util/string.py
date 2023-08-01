@@ -287,3 +287,4 @@ def replace_fortran_parameter(value: Any, param: str, target: str) -> str:
     elif isinstance(value, list):
         if has_parameterised_fortran_numbers(param, target):
             return replace_parameterised_fortran_numbers(param, value, target)
+    return target
