@@ -108,7 +108,7 @@ class _JorekStagedTimeEvolWorkflow(Workflow):
         # JOREK Run/Resume #
         ####################
         write_job_script(
-            self.machine,
+            self.settings.machine,
             "jorek",
             self.run_id,
             self.settings.scheduler,
@@ -332,7 +332,7 @@ class JorekStagedWorkflow(Workflow):
         # JOREK Initialisation #
         ########################
         write_job_script(
-            self.machine,
+            self.settings.machine,
             "jorek",
             self.run_id,
             self.settings.scheduler,
@@ -351,7 +351,7 @@ class JorekStagedWorkflow(Workflow):
         # STARWALL #
         ############
         write_job_script(
-            self.machine,
+            self.settings.machine,
             "starwall",
             self.run_id,
             self.settings.scheduler,
