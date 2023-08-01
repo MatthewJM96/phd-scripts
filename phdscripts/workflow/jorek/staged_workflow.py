@@ -252,9 +252,7 @@ class JorekStagedWorkflow(Workflow):
 
         jorek_params = self._param_namespace("jorek", param_set)
 
-        return {
-            k: v for k, v in jorek_params.enumerate() if k not in STARWALL_INVARIANTS
-        }
+        return {k: v for k, v in jorek_params.items() if k not in STARWALL_INVARIANTS}
 
     def _starwall_invariant_params(self, param_set: dict) -> dict:
         """
