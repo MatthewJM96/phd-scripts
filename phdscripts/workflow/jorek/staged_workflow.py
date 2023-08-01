@@ -152,6 +152,7 @@ class _JorekStagedTimeEvolWorkflow(Workflow):
             params = {**params, "tstep_n": self.timestep}
         if self.timestep_count is not None:
             params = {**params, "nstep_n": self.timestep_count}
+        params = {**params, "freeboundary": True}
 
         write_resuming_jorek_input_files(self._input_jorek(name), params)
 
