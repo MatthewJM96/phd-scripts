@@ -21,7 +21,7 @@ Currently, JOREK parameters on which equilibrim and STARWALL are grouped are:
             D_imp_extra_p, D_imp_extra_neg, D_imp_extra_neg_thresh
 """
 
-from shutil import copytree, copy2, copystat
+from shutil import copytree, copystat
 from functools import partial
 from os import symlink
 from os.path import isdir, join as join_path
@@ -123,23 +123,30 @@ class _JorekStagedTimeEvolWorkflow(Workflow):
             "04:00:00",
         )
 
-    def __copy_except_starwall_response(src: str, dest: str) -> None:
+    def __create_symlinks_for_equil_and_starwall(src: str, dest: str) -> None:
         """
         Same as copy2 except for STARWALL's response file it creates a symlink.
         """
 
-        if src[-21:] == "starwall-response.dat":
-            symlink(src, dest)
-            copystat(src, dest, follow_symlinks=False)
-        else:
-            copy2(src, dest)
+        files = [
+            "boundary.txt",
+            "equilibrium.txt",
+            "jorek00000.h5",
+            "starwall-response.dat",
+        ]
+
+        for file in files:
+            src_path = join_path(src, file)
+            dest_path = join_path(dest, file)
+
+            symlink(src_path, dest_path)
+            copystat(src_path, dest_path, follow_symlinks=False)
 
     def _build_working_directory(self, name: str, param_set: dict) -> None:
-        copytree(
-            self.template_dir,
-            self._working_dir(name),
-            symlinks=True,
-            copy_function=self.__copy_except_starwall_response,
+        copytree(self.template_dir, self._working_dir(name), symlinks=True)
+
+        self.__create_symlinks_for_equil_and_starwall(
+            self.template_dir, self._working_dir(name)
         )
 
         params = {**self._jorek_params, **self._param_namespace("jorek", param_set)}
@@ -156,8 +163,9 @@ class StarwallInvariantClass:
     Stores details about a STARWALL invariant class.
     """
 
-    def __init__(self, name: str) -> None:
+    def __init__(self, name: str, template_dir: str) -> None:
         self.name = name
+        self.template_dir = template_dir
         self._param_sets = []
         self._subworkflow = None
 
@@ -168,7 +176,7 @@ class StarwallInvariantClass:
         # We only need to specify the template directory here, everything else is the
         # same for all invariant classes.
         self._subworkflow: _JorekStagedTimeEvolWorkflow = init_workflow(
-            template_dir=self._working_dir(self.name)
+            template_dir=self.template_dir
         )
 
         self._subworkflow.setup(self._param_sets)
@@ -281,9 +289,10 @@ class JorekStagedWorkflow(Workflow):
         variant_params = self._starwall_variant_params(param_set)
 
         if str(variant_params) not in self._starwall_invariant_classes:
+            name = uuid4().hex
             self._starwall_invariant_classes[
                 str(variant_params)
-            ] = StarwallInvariantClass(uuid4().hex)
+            ] = StarwallInvariantClass(name, self._working_dir(name))
 
         starwall_invariant_class = self._starwall_invariant_classes[str(variant_params)]
 
