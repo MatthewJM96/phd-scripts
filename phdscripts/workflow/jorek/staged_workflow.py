@@ -148,7 +148,7 @@ class _JorekStagedTimeEvolWorkflow(Workflow):
             self.template_dir, self._working_dir(name)
         )
 
-        params = {**self._jorek_params, **self._param_namespace("jorek", param_set)}
+        params = {**self.jorek_params, **self._param_namespace("jorek", param_set)}
         if self._timestep is not None:
             params = {**params, "tstep_n": self._timestep}
         if self._timestep_count is not None:
@@ -379,13 +379,13 @@ class JorekStagedWorkflow(Workflow):
                 self._input_jorek_extrude_from(name),
                 self._input_jorek_rz_psi(name),
                 {
-                    **self._starwall_params,
+                    **self.starwall_params,
                     **self._param_namespace("starwall", param_set),
                 },
             )
 
     def _write_jorek_input_files(self, name: str, param_set: dict) -> None:
-        params = {**self._jorek_params, **param_set}
+        params = {**self.jorek_params, **param_set}
         if self._timestep is not None:
             params = {**params, "tstep_n": self._timestep}
         if self._timestep_count is not None:
