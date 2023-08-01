@@ -111,7 +111,7 @@ class Workflow(ABC):
             if len(key) <= prefix_len:
                 continue
 
-            if key[prefix_len:] == f"{namespace}//":
+            if key[:prefix_len] == f"{namespace}//":
                 subset[key[prefix_len:]] = param_set[key]
 
         return subset
