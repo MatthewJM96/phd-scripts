@@ -312,22 +312,20 @@ class JorekStagedWorkflow(Workflow):
         """
 
         for starwall_invariant_class in self._starwall_invariant_classes.values():
-            # Put each of the time_evols inside their respective directories.
-            class_settings = WorkflowSettings(
-                "",
-                self.settings.parallel_jobs,
-                self.settings.machine,
-                self.settings.scheduler,
-            )
-            class_settings.base_dir = join_path(
-                self.settings.base_dir, self.run_id, starwall_invariant_class.name
-            )
-
             starwall_invariant_class.setup(
                 partial(
                     _JorekStagedTimeEvolWorkflow,
                     run_id="time_evol",
-                    settings=class_settings,
+                    settings=WorkflowSettings(
+                        join_path(
+                            self.settings.base_dir,
+                            self.run_id,
+                            starwall_invariant_class.name,
+                        ),
+                        self.settings.parallel_jobs,
+                        self.settings.machine,
+                        self.settings.scheduler,
+                    ),
                     jorek_exec=self.jorek_exec,
                     timestep=self.timestep,
                     timestep_count=self.timestep_count,
