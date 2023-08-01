@@ -89,7 +89,9 @@ class ParameterPack:
 
         # Check to see if this new group is actually an extension of an existing group.
         for group in self.__groups:
-            if len(params - group) != len(params):
+            if len([param for param in params if param not in set(group)]) != len(
+                params
+            ):
                 group.extend(params)
                 return
 
