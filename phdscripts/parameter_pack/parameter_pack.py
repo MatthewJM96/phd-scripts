@@ -98,6 +98,8 @@ class ParameterPack:
         # Not extending an existing group, add a new one.
         self.__groups.append(params)
 
+        self.__dirty = True
+
     def __repr__(self):
         return repr(self.__parameters)
 
