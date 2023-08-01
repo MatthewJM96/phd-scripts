@@ -317,7 +317,8 @@ class JorekStagedWorkflow(Workflow):
 
         for starwall_invariant_class in self._starwall_invariant_classes.values():
             # Put each of the time_evols inside their respective directories.
-            subsettings.base_dir = join_path(
+            class_settings = deepcopy(subsettings)
+            class_settings.base_dir = join_path(
                 subsettings.base_dir, starwall_invariant_class.name
             )
 
@@ -325,7 +326,7 @@ class JorekStagedWorkflow(Workflow):
                 partial(
                     _JorekStagedTimeEvolWorkflow,
                     run_id="time_evol",
-                    settings=subsettings,
+                    settings=class_settings,
                     jorek_exec=self.jorek_exec,
                     timestep=self.timestep,
                     timestep_count=self.timestep_count,
