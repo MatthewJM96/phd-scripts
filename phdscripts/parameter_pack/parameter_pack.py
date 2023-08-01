@@ -177,18 +177,6 @@ class ParameterPack:
 
         self.__realisations = {}
 
-        # Figure out which parameters are ungrouped.
-
-        self.__ungrouped_params = []
-        for param in self.__realisations.keys():
-            found_in_group = False
-            for group in self.__groups:
-                if param in group:
-                    found_in_group = True
-                    break
-            if not found_in_group:
-                self.__ungrouped_params.append(param)
-
         # Collapse include and exclude values of each parameter.
 
         for param, vals in self.__parameters["include"].items():
@@ -201,6 +189,18 @@ class ParameterPack:
             # Unset realisation if no values remained after exclusion.
             if len(self.__realisations[param]) == 0:
                 del self.__realisations[param]
+
+        # Figure out which parameters are ungrouped.
+
+        self.__ungrouped_params = []
+        for param in self.__realisations.keys():
+            found_in_group = False
+            for group in self.__groups:
+                if param in group:
+                    found_in_group = True
+                    break
+            if not found_in_group:
+                self.__ungrouped_params.append(param)
 
         # Accounting for groupings, calculate number of combinations of realisations
         # possible.
