@@ -16,7 +16,7 @@ def to_float(num: Union[str, int, float]) -> float:
         return float(num)
 
     if re.fullmatch(r"[0-9]+\.?d[0-9]+", num) is not None:
-        return num.replace("d", "e")
+        return float(num.replace("d", "e"))
     else:
         try:
             return float(num)
