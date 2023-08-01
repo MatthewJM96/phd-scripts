@@ -21,7 +21,7 @@ Currently, JOREK parameters on which equilibrim and STARWALL are grouped are:
             D_imp_extra_p, D_imp_extra_neg, D_imp_extra_neg_thresh
 """
 
-from shutil import copytree, copystat
+from shutil import copytree
 from functools import partial
 from os import symlink
 from os.path import isdir, join as join_path
@@ -140,7 +140,6 @@ class _JorekStagedTimeEvolWorkflow(Workflow):
             dest_path = join_path(dest, file)
 
             symlink(src_path, dest_path)
-            copystat(src_path, dest_path, follow_symlinks=False)
 
     def _build_working_directory(self, name: str, param_set: dict) -> None:
         copytree(self.template_dir, self._working_dir(name), symlinks=True)
