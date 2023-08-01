@@ -105,12 +105,14 @@ class Workflow(ABC):
     def _param_namespace(self, namespace: str, param_set: dict) -> dict:
         subset = {}
 
+        prefix_len = len(f"{namespace}//")
+
         for key in param_set.keys():
-            if len(key) <= len(f"{namespace}//"):
+            if len(key) <= prefix_len:
                 continue
 
-            if key[:7] == f"{namespace}//":
-                subset[key[7:]] = param_set[key]
+            if key[prefix_len:] == f"{namespace}//":
+                subset[key[prefix_len:]] = param_set[key]
 
         return subset
 
