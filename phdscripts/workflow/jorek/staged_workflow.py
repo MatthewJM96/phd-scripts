@@ -21,6 +21,7 @@ Currently, JOREK parameters on which equilibrim and STARWALL are grouped are:
             D_imp_extra_p, D_imp_extra_neg, D_imp_extra_neg_thresh
 """
 
+from copy import deepcopy
 from shutil import copytree
 from functools import partial
 from os import symlink
@@ -303,12 +304,15 @@ class JorekStagedWorkflow(Workflow):
         STARWALL-invariant classes, set up corresponding workflows
         """
 
+        subsettings = deepcopy(self.settings)
+        subsettings.base_dir = join_path(subsettings.base_dir, "time_evol")
+
         for starwall_invariant_class in self._starwall_invariant_classes.values():
             starwall_invariant_class.setup(
                 partial(
                     _JorekStagedTimeEvolWorkflow,
-                    run_id=join_path(self.run_id, "time_evol"),
-                    settings=self.settings,
+                    run_id=self.run_id + "_time_evol",
+                    settings=subsettings,
                     jorek_exec=self.jorek_exec,
                     timestep=self.timestep,
                     timestep_count=self.timestep_count,
