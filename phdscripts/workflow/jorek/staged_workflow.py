@@ -305,13 +305,13 @@ class JorekStagedWorkflow(Workflow):
         """
 
         subsettings = deepcopy(self.settings)
-        subsettings.base_dir = join_path(subsettings.base_dir, "time_evol")
+        subsettings.base_dir = join_path(subsettings.base_dir, self.run_id)
 
         for starwall_invariant_class in self._starwall_invariant_classes.values():
             starwall_invariant_class.setup(
                 partial(
                     _JorekStagedTimeEvolWorkflow,
-                    run_id=self.run_id + "_time_evol",
+                    run_id="time_evol",
                     settings=subsettings,
                     jorek_exec=self.jorek_exec,
                     timestep=self.timestep,
