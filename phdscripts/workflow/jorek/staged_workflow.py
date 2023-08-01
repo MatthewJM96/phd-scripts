@@ -63,6 +63,7 @@ class _JorekStagedTimeEvolWorkflow(Workflow):
         run_id: str,
         settings: WorkflowSettings,
         template_dir: str,
+        parent_dir: str,
         jorek_exec: str,
         timestep: Optional[int] = None,
         timestep_count: Optional[int] = None,
@@ -71,6 +72,7 @@ class _JorekStagedTimeEvolWorkflow(Workflow):
         super().__init__(run_id, settings)
 
         self.template_dir = template_dir
+        self.parent_dir = parent_dir
         self.jorek_exec = jorek_exec
         self.timestep = timestep
         self.timestep_count = timestep_count
@@ -144,7 +146,7 @@ class _JorekStagedTimeEvolWorkflow(Workflow):
         copytree(self.template_dir, self._working_dir(name), symlinks=True)
 
         self.__create_symlinks_for_equil_and_starwall(
-            self.template_dir, self._working_dir(name)
+            self.parent_dir, self._working_dir(name)
         )
 
         params = {**self.jorek_params, **self._param_namespace("jorek", param_set)}
@@ -322,6 +324,7 @@ class JorekStagedWorkflow(Workflow):
                         self.settings.scheduler,
                     ),
                     template_dir=self.template_dir,
+                    parent_dir=self._working_dir(starwall_invariant_class.name),
                     jorek_exec=self.jorek_exec,
                     timestep=self.timestep,
                     timestep_count=self.timestep_count,
