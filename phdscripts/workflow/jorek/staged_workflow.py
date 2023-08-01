@@ -316,6 +316,11 @@ class JorekStagedWorkflow(Workflow):
         subsettings.base_dir = join_path(subsettings.base_dir, self.run_id)
 
         for starwall_invariant_class in self._starwall_invariant_classes.values():
+            # Put each of the time_evols inside their respective directories.
+            subsettings.base_dir = join_path(
+                subsettings.base_dir, starwall_invariant_class.name
+            )
+
             starwall_invariant_class.setup(
                 partial(
                     _JorekStagedTimeEvolWorkflow,
