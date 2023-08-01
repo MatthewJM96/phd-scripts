@@ -149,10 +149,10 @@ class _JorekStagedTimeEvolWorkflow(Workflow):
         )
 
         params = {**self.jorek_params, **self._param_namespace("jorek", param_set)}
-        if self._timestep is not None:
-            params = {**params, "tstep_n": self._timestep}
-        if self._timestep_count is not None:
-            params = {**params, "nstep_n": self._timestep_count}
+        if self.timestep is not None:
+            params = {**params, "tstep_n": self.timestep}
+        if self.timestep_count is not None:
+            params = {**params, "nstep_n": self.timestep_count}
 
         write_resuming_jorek_input_files(self._input_jorek(name), params)
 
@@ -386,10 +386,10 @@ class JorekStagedWorkflow(Workflow):
 
     def _write_jorek_input_files(self, name: str, param_set: dict) -> None:
         params = {**self.jorek_params, **param_set}
-        if self._timestep is not None:
-            params = {**params, "tstep_n": self._timestep}
-        if self._timestep_count is not None:
-            params = {**params, "nstep_n": self._timestep_count}
+        if self.timestep is not None:
+            params = {**params, "tstep_n": self.timestep}
+        if self.timestep_count is not None:
+            params = {**params, "nstep_n": self.timestep_count}
 
         if self.resume:
             write_resuming_jorek_input_files(self._input_jorek(name), params)
