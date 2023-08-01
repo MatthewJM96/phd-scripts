@@ -22,10 +22,9 @@ Currently, JOREK parameters on which equilibrim and STARWALL are grouped are:
 """
 
 from shutil import copytree
-from functools import partial
 from os import symlink
 from os.path import isdir, join as join_path
-from typing import Callable, Dict, Optional
+from typing import Dict, Optional
 from uuid import uuid4
 
 from .. import Workflow, WorkflowSettings
@@ -162,21 +161,18 @@ class StarwallInvariantClass:
     Stores details about a STARWALL invariant class.
     """
 
-    def __init__(self, name: str, template_dir: str) -> None:
+    def __init__(self, name: str) -> None:
         self.name = name
-        self.template_dir = template_dir
         self._param_sets = []
         self._subworkflow = None
 
     def append_param_set(self, param_set: dict):
         self._param_sets.append(param_set)
 
-    def setup(self, init_workflow: Callable[[None], _JorekStagedTimeEvolWorkflow]):
+    def setup(self, subworkflow: _JorekStagedTimeEvolWorkflow):
         # We only need to specify the template directory here, everything else is the
         # same for all invariant classes.
-        self._subworkflow: _JorekStagedTimeEvolWorkflow = init_workflow(
-            template_dir=self.template_dir
-        )
+        self._subworkflow = subworkflow
 
         self._subworkflow.setup(self._param_sets)
 
@@ -294,10 +290,9 @@ class JorekStagedWorkflow(Workflow):
         }
 
         if str(variant_params) not in self._starwall_invariant_classes:
-            name = uuid4().hex
             self._starwall_invariant_classes[
                 str(variant_params)
-            ] = StarwallInvariantClass(name, self._working_dir(name))
+            ] = StarwallInvariantClass(uuid4().hex)
 
         starwall_invariant_class = self._starwall_invariant_classes[str(variant_params)]
 
@@ -313,8 +308,7 @@ class JorekStagedWorkflow(Workflow):
 
         for starwall_invariant_class in self._starwall_invariant_classes.values():
             starwall_invariant_class.setup(
-                partial(
-                    _JorekStagedTimeEvolWorkflow,
+                _JorekStagedTimeEvolWorkflow(
                     run_id="time_evol",
                     settings=WorkflowSettings(
                         join_path(
@@ -326,6 +320,7 @@ class JorekStagedWorkflow(Workflow):
                         self.settings.machine,
                         self.settings.scheduler,
                     ),
+                    template_dir=self.template_dir,
                     jorek_exec=self.jorek_exec,
                     timestep=self.timestep,
                     timestep_count=self.timestep_count,
