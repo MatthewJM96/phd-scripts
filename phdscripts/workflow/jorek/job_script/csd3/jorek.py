@@ -47,7 +47,7 @@ param_set_name="${{param_set_parts[0]}}"
 
 cd {root_dir}/${{param_set_name}}
 
-mpirun -ppn {ntasks / nodes} -np {ntasks} \\
+mpirun -ppn {int(ntasks / nodes)} -np {ntasks} \\
     {jorek_exec} < {input_filename}       \\
         | tee log.{log_name}
         """,
