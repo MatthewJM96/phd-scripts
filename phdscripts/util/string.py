@@ -71,7 +71,7 @@ def has_parameterised_fortran_numbers(
     param_name: str,
     target: str,
     intermediate: str = " *= *",
-    list_separator: str = ", *",
+    list_separator: str = ",? *",
 ) -> bool:
     escaped_param_name = regex.escape(param_name)
 
@@ -217,7 +217,7 @@ def replace_parameterised_fortran_numbers(
     subs: List[Union[int, float]],
     target: str,
     intermediate: str = " *= *",
-    list_separator: str = ", *",
+    list_separator: str = ",? *",
     list_begin: str = "",
 ) -> str:
     if len(subs) == 0:
