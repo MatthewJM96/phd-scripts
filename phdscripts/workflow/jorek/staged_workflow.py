@@ -124,7 +124,7 @@ class _JorekStagedTimeEvolWorkflow(Workflow):
             "04:00:00",
         )
 
-    def __create_symlinks_for_equil_and_starwall(src: str, dest: str) -> None:
+    def __create_symlinks_for_equil_and_starwall(self, src: str, dest: str) -> None:
         """
         Same as copy2 except for STARWALL's response file it creates a symlink.
         """
