@@ -128,13 +128,13 @@ class ParameterPack:
         for group in self.__groups:
             # First param in group must exist in realisations for the group to have any
             # effect.
-            if group[0] not in self.__realistions.keys():
+            if group[0] not in self.__realisations.keys():
                 self.__count = 0
                 return
 
             # First param exists, start with it as grouped param with least
             # realisations.
-            shortest = len(self.__realistions[group[0]])
+            shortest = len(self.__realisations[group[0]])
 
             # For each subsequent param, see if it exists, and if it doesn't then see if
             # it is a param with less realisations than previously encountered params.
@@ -143,8 +143,8 @@ class ParameterPack:
                     self.__count = 0
                     return
 
-                if shortest > len(self.__realistions[param]):
-                    shortest = len(self.__realistions[param])
+                if shortest > len(self.__realisations[param]):
+                    shortest = len(self.__realisations[param])
 
             # Mark this count for iterating later.
 
