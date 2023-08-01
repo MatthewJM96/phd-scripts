@@ -8,9 +8,9 @@ import regex
 
 _PARAM_START = r"(?:^|[^_a-zA-Z])"
 
-_FORTRAN_BOOL_PATTERN = r"(?:.f.|.false.|.t.|.true.)"
+_FORTRAN_BOOL_PATTERN = r"(?:\.f\.|\.false\.|\.t\.|\.true\.)"
 
-_DECIMAL_NUMBER_PATTERN = r"\-?[0-9]+.?[0-9]*"
+_DECIMAL_NUMBER_PATTERN = r"\-?[0-9]+\.?[0-9]*"
 _FORTRAN_NUMBER_PATTERN = (
     rf"{_DECIMAL_NUMBER_PATTERN}(?:[eEdD]{_DECIMAL_NUMBER_PATTERN})?"
 )
