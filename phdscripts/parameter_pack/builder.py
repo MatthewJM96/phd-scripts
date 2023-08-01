@@ -82,21 +82,49 @@ def __parse_dict_param(val: dict):
 def build_parameter_pack(
     filepath: Optional[str] = None, cli_args: Optional[dict] = None
 ) -> ParameterPack:
-    raw_params = {}
+    build_doc = {}
 
     if filepath is not None and isfile(filepath):
         with open(filepath, "r") as f:
-            raw_params = full_load(f)
+            build_doc = full_load(f)
 
     if cli_args is not None:
-        raw_params.update(cli_args)
+        build_doc.update(cli_args)
 
     params = ParameterPack()
-    # TODO(Matthew): Support for excluding!
-    for key, val in raw_params.items():
-        if isinstance(val, dict):
-            params.include(key, __parse_dict_param(val))
-        else:
-            params.include(key, val)
+
+    if "groups" in build_doc:
+        if not isinstance(build_doc["groups"], list):
+            raise ValueError("Groups in builder file is not a list of groups.")
+
+        for group in build_doc["groups"]:
+            if not isinstance(group, list):
+                raise ValueError("Groups in builder file is not a list of groups.")
+
+            params.group(group)
+
+    if "includes" in build_doc:
+        if not isinstance(build_doc["includes"], dict):
+            raise ValueError(
+                "Includes in builder file is not a dict of parameter ranges to include."
+            )
+
+        for key, val in build_doc["includes"].items():
+            if isinstance(val, dict):
+                params.include(key, __parse_dict_param(val))
+            else:
+                params.include(key, val)
+
+    if "excludes" in build_doc:
+        if not isinstance(build_doc["excludes"], dict):
+            raise ValueError(
+                "Excludes in builder file is not a dict of parameter ranges to exclude."
+            )
+
+        for key, val in build_doc["excludes"].items():
+            if isinstance(val, dict):
+                params.exclude(key, __parse_dict_param(val))
+            else:
+                params.exclude(key, val)
 
     return params
