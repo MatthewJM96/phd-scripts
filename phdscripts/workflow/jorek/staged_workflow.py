@@ -287,10 +287,10 @@ class JorekStagedWorkflow(Workflow):
         variant_params = self._starwall_variant_params(param_set)
 
         variant_params = {
-            **{f"jorek//{k}": v for k, v in variant_params.itmes()},
+            **{f"jorek//{k}": v for k, v in variant_params.items()},
             **{
                 f"starwall//{k}": v
-                for k, v in self._param_namespace("starwall", param_set)
+                for k, v in self._param_namespace("starwall", param_set).items()
             },
         }
 
