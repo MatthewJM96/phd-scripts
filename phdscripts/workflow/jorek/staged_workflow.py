@@ -21,12 +21,11 @@ Currently, JOREK parameters on which equilibrim and STARWALL are grouped are:
             D_imp_extra_p, D_imp_extra_neg, D_imp_extra_neg_thresh
 """
 
-from shutil import copy, copytree
-from os import scandir, symlink
+from shutil import copytree
+from os import symlink
 from os.path import isdir, join as join_path
 from typing import Dict, Optional
 from uuid import uuid4
-from re import match
 
 from .. import Workflow, WorkflowSettings
 from .input_file import (
@@ -86,10 +85,6 @@ class _JorekStagedTimeEvolWorkflow(Workflow):
         workflow.
         """
 
-        # If restart file is older than the most recent timestep file, then copy the
-        # latest timestep file as the new restart file.
-        self._maybe_write_restart_file()
-
         # JOREK Run
         return self.settings.scheduler.array_batch_jobs(
             self._jorek_job_script() % "resume",
@@ -108,43 +103,6 @@ class _JorekStagedTimeEvolWorkflow(Workflow):
 
     def _jorek_job_script(self) -> str:
         return join_path(self._root_dir(), JOREK_JOB_SCRIPT)
-
-    def _maybe_write_restart_file(self) -> None:
-        """
-        Writes JOREK restart file if the latest timestep file is newer than the latest
-        restart file that may already exist.
-        """
-
-        restart_mod_time = None
-        last_timestep_filepath = None
-        last_timestep_mod_time = None
-
-        for name in self._serialised_param_sets.keys():
-            for file in sorted(
-                scandir(self._working_dir(name)), key=lambda f: f.name, reverse=True
-            ):
-                if (
-                    match(r"jorek[0-9]{5}\.h5", file.name)
-                    and last_timestep_mod_time is None
-                ):
-                    last_timestep_filepath = file.path
-                    last_timestep_mod_time = file.stat(follow_symlinks=False).st_mtime
-                if file.name == "jorek_restart.h5":
-                    restart_mod_time = file.stat(follow_symlinks=False).st_mtime
-
-        # If last timestep does not exist, then nothing to do, probably something has
-        # gone wrong but maybe someone has just manually created a working dir with a
-        # restart file only.
-        if last_timestep_mod_time is None:
-            return
-
-        # If restart does not exist, or it is older than the latest timestep file,
-        # overwrite it with the latest timestep.
-        if restart_mod_time is None or restart_mod_time < last_timestep_mod_time:
-            copy(
-                last_timestep_filepath,
-                join_path(self._working_dir(name), "jorek_restart.h5"),
-            )
 
     def _write_job_scripts(self) -> None:
         ####################
