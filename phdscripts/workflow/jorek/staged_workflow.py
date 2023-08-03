@@ -133,7 +133,7 @@ class _JorekStagedTimeEvolWorkflow(Workflow):
             "boundary.txt",
             "equilibrium.txt",
             "jorek00000.h5",
-            "starwall-response.dat",
+            "jorek_restart.h5" "starwall-response.dat",
         ]
 
         for file in files:

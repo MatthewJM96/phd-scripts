@@ -47,6 +47,13 @@ param_set_name="${{param_set_parts[0]}}"
 
 cd {root_dir}/${{param_set_name}}
 
+restart = "jorek_restart.h5"
+if [ -L "$restart" ]; then
+    target=$(readlink "$restart")
+    rm "$restart"
+    cp "$target" "$restart"
+fi
+
 mpirun -ppn {int(ntasks / nodes)} -np {ntasks} \\
     {jorek_exec} < {input_filename}       \\
         | tee log.{log_name}
