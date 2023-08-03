@@ -359,6 +359,8 @@ class JorekStagedWorkflow(Workflow):
             JOREK_JOB_ERR % "init",
             "jorek_init",
             "00:10:00",
+            nodes=2,
+            ntasks=16,
         )
 
         ############
