@@ -132,7 +132,15 @@ class _JorekStagedTimeEvolWorkflow(Workflow):
                 if file.name == "jorek_restart.h5":
                     restart_mod_time = file.stat(follow_symlinks=False).st_mtime
 
-        if restart_mod_time < last_timestep_mod_time:
+        # If last timestep does not exist, then nothing to do, probably something has
+        # gone wrong but maybe someone has just manually created a working dir with a
+        # restart file only.
+        if last_timestep_mod_time is None:
+            return
+
+        # If restart does not exist, or it is older than the latest timestep file,
+        # overwrite it with the latest timestep.
+        if restart_mod_time is None or restart_mod_time < last_timestep_mod_time:
             copy(
                 last_timestep_filepath,
                 join_path(self._working_dir(name), "jorek_restart.h5"),
