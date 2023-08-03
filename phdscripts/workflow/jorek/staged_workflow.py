@@ -120,7 +120,9 @@ class _JorekStagedTimeEvolWorkflow(Workflow):
         last_timestep_mod_time = None
 
         for name in self._serialised_param_sets.keys():
-            for file in sorted(scandir(self._working_dir(name)), reverse=True):
+            for file in sorted(
+                scandir(self._working_dir(name)), key=lambda f: f.name, reverse=True
+            ):
                 if (
                     match(r"jorek[0-9]{5}\.h5", file.name)
                     and last_timestep_mod_time is None
