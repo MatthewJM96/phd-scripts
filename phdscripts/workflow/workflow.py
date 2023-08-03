@@ -62,19 +62,19 @@ class Workflow(ABC):
 
         self._write_job_scripts()
 
-        serialised_param_sets: Dict[str, str] = {}
+        self._serialised_param_sets: Dict[str, str] = {}
 
         self._job_instances = 0
         for param_set in param_pack:
             name = self._register_param_set(param_set)
 
-            if name not in serialised_param_sets:
-                serialised_param_sets[name] = str(param_set)
+            if name not in self._serialised_param_sets:
+                self._serialised_param_sets[name] = str(param_set)
 
                 self._build_working_directory(name, param_set)
                 self._job_instances += 1
 
-        self._write_param_set_register(serialised_param_sets)
+        self._write_param_set_register()
 
         self._complete_setup()
 
@@ -116,9 +116,9 @@ class Workflow(ABC):
 
         return subset
 
-    def _write_param_set_register(self, param_sets: Dict[str, str]) -> None:
+    def _write_param_set_register(self) -> None:
         param_set_register = ""
-        for name, param_set in param_sets.items():
+        for name, param_set in self._serialised_param_sets.items():
             param_set_register += name + ', "' + param_set + '"\n'
 
         with open(self._param_set_register(), "w") as f:
