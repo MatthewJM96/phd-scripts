@@ -47,7 +47,7 @@ param_set_name="${{param_set_parts[0]}}"
 
 cd {root_dir}/${{param_set_name}}
 
-restart = "jorek_restart.h5"
+restart="jorek_restart.h5"
 if [ -L "$restart" ]; then
     target=$(readlink "$restart")
     rm "$restart"
