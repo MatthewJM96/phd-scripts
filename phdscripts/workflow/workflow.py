@@ -10,7 +10,7 @@ from os.path import join as join_path
 from re import fullmatch
 from typing import Dict, List, Optional, Union
 
-from phdscripts.parameter_pack import ParameterPack
+from phdscripts.parameter_pack import ParameterPack, write_named_parameter_sets
 from phdscripts.scheduler import SchedulerDriver
 
 PARAM_SET_REGISTER_FILENAME = "param_set_register"
@@ -62,19 +62,19 @@ class Workflow(ABC):
 
         self._write_job_scripts()
 
-        serialised_param_sets: Dict[str, str] = {}
+        param_sets: Dict[str, dict] = {}
 
         self._job_instances = 0
         for param_set in param_pack:
             name = self._register_param_set(param_set)
 
-            if name not in serialised_param_sets:
-                serialised_param_sets[name] = str(param_set)
+            if name not in param_sets:
+                param_sets[name] = param_set
 
                 self._build_working_directory(name, param_set)
                 self._job_instances += 1
 
-        self._write_param_set_register(serialised_param_sets)
+        write_named_parameter_sets(param_sets, self._param_set_register())
 
         self._complete_setup()
 
@@ -115,14 +115,6 @@ class Workflow(ABC):
                 subset[key[prefix_len:]] = param_set[key]
 
         return subset
-
-    def _write_param_set_register(self, param_sets: Dict[str, str]) -> None:
-        param_set_register = ""
-        for name, param_set in param_sets.items():
-            param_set_register += name + ', "' + param_set + '"\n'
-
-        with open(self._param_set_register(), "w") as f:
-            f.write(param_set_register)
 
     @abstractmethod
     def _register_param_set(self, param_set: dict) -> str:
