@@ -37,7 +37,7 @@ class SceneWorkflow(Workflow):
         scene_exec: str,
         scene_params: dict = {},
     ):
-        super().__init__(run_id, settings)
+        super().__init__(run_id, settings, False)
 
         self._template_dir = template_dir
         self._scene_exec = scene_exec

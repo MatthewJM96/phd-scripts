@@ -62,6 +62,7 @@ class _JorekStagedTimeEvolWorkflow(Workflow):
         self,
         run_id: str,
         settings: WorkflowSettings,
+        resume: bool,
         template_dir: str,
         parent_dir: str,
         jorek_exec: str,
@@ -69,7 +70,7 @@ class _JorekStagedTimeEvolWorkflow(Workflow):
         timestep_count: Optional[int] = None,
         jorek_params: dict = {},
     ):
-        super().__init__(run_id, settings)
+        super().__init__(run_id, settings, resume)
 
         self.template_dir = template_dir
         self.parent_dir = parent_dir
@@ -196,16 +197,16 @@ class JorekStagedWorkflow(Workflow):
         self,
         run_id: str,
         settings: WorkflowSettings,
+        resume: bool,
         template_dir: str,
         jorek_exec: str,
-        resume: bool,
         timestep: Optional[int] = None,
         timestep_count: Optional[int] = None,
         jorek_params: dict = {},
         starwall_exec: Optional[str] = None,
         starwall_params: dict = {},
     ):
-        super().__init__(run_id, settings)
+        super().__init__(run_id, settings, resume)
 
         self.template_dir = template_dir
         self.jorek_exec = jorek_exec

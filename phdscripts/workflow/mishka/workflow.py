@@ -37,7 +37,7 @@ class MishkaWorkflow(Workflow):
         mishka_exec: str,
         mishka_params: dict = {},
     ):
-        super().__init__(run_id, settings)
+        super().__init__(run_id, settings, False)
 
         self._template_dir = template_dir
         self._mishka_exec = mishka_exec

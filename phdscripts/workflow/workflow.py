@@ -5,12 +5,16 @@ Abstract definition of a workflow.
 import logging
 from abc import ABC, abstractmethod
 from os import makedirs
-from os.path import isdir
+from os.path import isdir, isfile
 from os.path import join as join_path
 from re import fullmatch
 from typing import Dict, List, Optional, Union
 
-from phdscripts.parameter_pack import ParameterPack, write_named_parameter_sets
+from phdscripts.parameter_pack import (
+    ParameterPack,
+    write_named_parameter_sets,
+    read_named_parameter_sets,
+)
 from phdscripts.scheduler import SchedulerDriver
 
 PARAM_SET_REGISTER_FILENAME = "param_set_register"
@@ -35,8 +39,9 @@ class Workflow(ABC):
     Abstract definition of a workflow.
     """
 
-    def __init__(self, run_id: str, settings: WorkflowSettings):
+    def __init__(self, run_id: str, settings: WorkflowSettings, resume: bool):
         self.settings = settings
+        self.resume = resume
 
         if not self._are_settings_good():
             raise ValueError(
@@ -58,25 +63,43 @@ class Workflow(ABC):
         self.run_id = run_id
 
     def setup(self, param_pack: Union[ParameterPack, List[dict]]):
+        if self.resume:
+            print("setup(param_pack) should only be called if not resuming.")
+            return
+
         self._build_root_working_directory()
 
         self._write_job_scripts()
 
-        param_sets: Dict[str, dict] = {}
+        self._param_sets: Dict[str, dict] = {}
 
-        self._job_instances = 0
         for param_set in param_pack:
             name = self._register_param_set(param_set)
 
-            if name not in param_sets:
-                param_sets[name] = param_set
+            if name not in self._param_sets:
+                self._param_sets[name] = param_set
 
                 self._build_working_directory(name, param_set)
-                self._job_instances += 1
 
-        write_named_parameter_sets(param_sets, self._param_set_register())
+        self._job_instances = len(self._param_sets)
+
+        write_named_parameter_sets(self._param_sets, self._param_set_register())
 
         self._complete_setup()
+
+    def discover(self):
+        if not self.resume:
+            print("discover() should only be called if resuming.")
+            return
+
+        if not isfile(self._param_set_register()):
+            print(
+                "Param set register file not found at:\n  " + self._param_set_register()
+            )
+
+        self._param_sets = read_named_parameter_sets(self._param_set_register())
+
+        self._job_instances = len(self._param_sets)
 
     @abstractmethod
     def run(self, run_after: Optional[str] = None) -> str:
