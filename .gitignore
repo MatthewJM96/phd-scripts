@@ -3,6 +3,7 @@
 .idea
 
 # local python env
+poetry.lock
 .venv
 
 # local testing
